@@ -1,0 +1,21 @@
+{
+  "moduleFileExtensions": [
+    "js",
+    "json",
+    "ts"
+  ],
+  "rootDir": ".",
+  "testEnvironment": "node",
+  "testRegex": ".e2e-spec.ts$",
+  "transform": {
+    "^.+\\.(t|j)s$": "ts-jest"
+  },
+  "moduleNameMapper": {
+    "@libs/database/(.*)": "<rootDir>/../libs/database/src/$1",
+    "@libs/database": "<rootDir>/../libs/database/src",
+    "@libs/types/(.*)": "<rootDir>/../libs/types/src/$1",
+    "@libs/types": "<rootDir>/../libs/types/src",
+    "@libs/gateway/(.*)": "<rootDir>/../libs/gateway/src/$1",
+    "@libs/gateway": "<rootDir>/../libs/gateway/src"
+  }
+}

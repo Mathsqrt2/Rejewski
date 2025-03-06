@@ -1,8 +1,8 @@
-import { Module } from '@nestjs/common';
-import { EmailerService } from './emailer.service';
-import { DatabaseService } from '@libs/database';
-import { MailerModule } from '@nestjs-modules/mailer';
 import { VerificationModule } from '@libs/verification';
+import { MailerModule } from '@nestjs-modules/mailer';
+import { EmailerService } from './emailer.service';
+import { DatabaseModule } from '@libs/database';
+import { Module } from '@nestjs/common';
 
 @Module({
   imports: [
@@ -22,7 +22,7 @@ import { VerificationModule } from '@libs/verification';
       }
     }),
     VerificationModule,
-    DatabaseService,
+    DatabaseModule,
   ],
   providers: [EmailerService],
   exports: [EmailerService],

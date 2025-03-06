@@ -7,6 +7,8 @@ declare namespace NodeJS {
         DB_PASS: string;
         DB_PORT: number;
         DB_USER: string;
+        DB_TYPE: "mysql" | "mariadb" | "postgres";
+        DB_NAME: string;
 
         SMTP_SERVICE: string;
         SMTP_HOST: string;

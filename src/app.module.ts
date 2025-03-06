@@ -1,16 +1,17 @@
+import { DiscordModule } from '@discord-nestjs/core';
+import { BotIntents } from './discord/bot.intents';
+import { ScheduleModule } from '@nestjs/schedule';
+import { BotModule } from './discord/bot.module';
+import { ConfigModule } from '@nestjs/config';
 import { Module } from '@nestjs/common';
-import { AppService } from './app.service';
-import { DatabaseModule } from '@libs/database';
-import { GatewayModule } from '@libs/gateway';
 
 @Module({
   imports: [
-    DatabaseModule,
-    GatewayModule,
-  ],
-  providers: [
-    AppService
-  ],
+    ConfigModule.forRoot({ isGlobal: true }),
+    DiscordModule.forRootAsync(BotIntents),
+    ScheduleModule.forRoot(),
+    BotModule,
+  ]
 })
 
 export class AppModule { }

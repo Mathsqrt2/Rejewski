@@ -1,7 +1,7 @@
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Email } from "./email.entity";
 
-@Entity()
+@Entity({ name: `codes` })
 export class Code {
 
     @PrimaryGeneratedColumn()

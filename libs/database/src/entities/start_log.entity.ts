@@ -1,6 +1,6 @@
 import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from "typeorm";
 
-@Entity()
+@Entity({ name: `start_logs` })
 export class StartLog {
 
     @PrimaryGeneratedColumn()

@@ -1,22 +1,21 @@
 import { InjectDiscordClient, Once } from "@discord-nestjs/core";
-import { StartLog } from "@libs/database/TypeORM/start_log.entity";
-import { Injectable, OnApplicationBootstrap } from "@nestjs/common";
+import { StartLog } from "@libs/database/entities/start_log.entity";
 import { InjectRepository } from "@nestjs/typeorm";
 import { ActivityType, Client } from "discord.js";
+import { SettingsService } from "@libs/settings";
+import { Injectable } from "@nestjs/common";
+import { Logger } from "@libs/logger";
 import { Repository } from "typeorm";
 
 @Injectable()
-export class BotGatewayService implements OnApplicationBootstrap {
+export class BotGatewayService {
 
     constructor(
         @InjectRepository(StartLog) private readonly startLog: Repository<StartLog>,
         @InjectDiscordClient() private readonly client: Client,
+        private readonly settings: SettingsService,
+        private readonly logger: Logger,
     ) { }
-
-    public async onApplicationBootstrap() {
-
-        console.log(this.client.application)
-    }
 
     @Once(`ready`)
     public async onBotReady() {
@@ -27,9 +26,13 @@ export class BotGatewayService implements OnApplicationBootstrap {
         })
 
         try {
-            await this.startLog.save({ bot: `Rejewski` });
+            await this.startLog.save({
+                bot: this.settings.app.name,
+                botId: this.client.application.id,
+            });
+            this.logger.log(`Application launched successfully.`)
         } catch (error) {
-
+            this.logger.error(`Failed to launch application.`, { error });
         }
 
     }

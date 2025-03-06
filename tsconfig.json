@@ -41,6 +41,18 @@
       "@libs/gateway/*": [
         "libs/gateway/src/*"
       ],
+      "@libs/logger": [
+        "libs/logger/src"
+      ],
+      "@libs/logger/*": [
+        "libs/logger/src/*"
+      ],
+      "@libs/settings": [
+        "libs/settings/src"
+      ],
+      "@libs/settings/*": [
+        "libs/settings/src/*"
+      ],
       "@libs/types": [
         "libs/types/src"
       ],

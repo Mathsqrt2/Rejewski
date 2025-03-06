@@ -1,7 +1,8 @@
-import { Chat } from "./TypeORM/chat.entity";
-import { Code } from "./TypeORM/code.entity";
-import { Email } from "./TypeORM/email.entity";
-import { StartLog } from "./TypeORM/start_log.entity";
-import { User } from "./TypeORM/user.entity";
+import { StartLog } from "./entities/start_log.entity";
+import { Email } from "./entities/email.entity";
+import { Chat } from "./entities/chat.entity";
+import { Code } from "./entities/code.entity";
+import { User } from "./entities/user.entity";
+import { Log } from "./entities/log.entity";
 
-export const databaseEntities = [Chat, Code, Email, User, StartLog];
+export const databaseEntities = [Chat, Code, Email, User, StartLog, Log];

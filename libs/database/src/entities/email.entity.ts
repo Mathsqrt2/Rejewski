@@ -2,7 +2,7 @@ import { Column, CreateDateColumn, Entity, JoinColumn, OneToMany, OneToOne, Prim
 import { User } from "./user.entity";
 import { Code } from "./code.entity";
 
-@Entity()
+@Entity({ name: `emails` })
 export class Email {
 
     @PrimaryGeneratedColumn()

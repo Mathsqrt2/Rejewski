@@ -1,0 +1,23 @@
+version: 2
+updates:
+  - package-ecosystem: 'npm'
+    directory: '/'
+    schedule:
+      interval: 'monthly'
+    assignees:
+      - Mathsqrt2
+    reviewers:
+      - Mathsqrt2
+    labels:
+      - 'Priority: High'
+
+  - package-ecosystem: 'github-actions'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+    assignees:
+      - Mathsqrt2
+    reviewers:
+      - Mathsqrt2
+    labels:
+      - 'Priority: High'

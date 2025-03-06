@@ -1,3 +1,5 @@
 declare namespace NodeJS {
-    export interface DotEnv { }
+  export interface DotEnv {
+    TOKEN: string;
+  }
 }

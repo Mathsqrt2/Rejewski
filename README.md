@@ -2,7 +2,7 @@
 
 ### About
 
-A dedicated Discord bot for automating server management in the scientific community of the Opole University of Technology. It fully respects the protection of personal and sensitive data while verifying users’ affiliation with the university, ensuring efficient and secure server operations.
+A dedicated Discord bot for automating server management in the scientific community of the [Opole University of Technology](https://po.edu.pl/). It fully respects the protection of personal and sensitive data while verifying users’ affiliation with the university, ensuring efficient and secure server operations.
 
 ---
 
@@ -32,7 +32,7 @@ git clone https://github.com/Mathsqrt2/RedirectionPanel.git
 
 ```
 
-To run the application, you'll need a .env file where you fill in the basic information required for the bot to function.
+To run the application, you'll need a [.env](.env.example) file where you fill in the basic information required for the bot to function.
 
 Then run the panel
 

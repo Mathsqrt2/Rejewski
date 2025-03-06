@@ -8,18 +8,18 @@ A dedicated Discord bot for automating server management in the scientific commu
 
 ### The Name "Rejewski"
 
-Marian Adam Rejewski (1905–1980) was a Polish mathematician and cryptologist who, in 1932, cracked the Enigma cipher used by Nazi Germany. His success enabled the British to decode German military communications during World War II, significantly contributing to the Allies’ victory.
+[Marian Adam Rejewski](https://en.wikipedia.org/wiki/Marian_Rejewski) (1905–1980) was a Polish mathematician and cryptologist who, in 1932, cracked the Enigma cipher used by Nazi Germany. His success enabled the British to decode German military communications during World War II, significantly contributing to the Allies’ victory.
 
 ---
 
 ### Technologies Used
 
-- **NestJS:** – A modular framework for building efficient, scalable Node.js applications  
-- **TypeScript:** – The main programming language for the bot  
-- **DiscordJS:** – A robust library for interfacing with the Discord API  
-- **MySql:** A widely-used open-source relational database management system known for its reliability and scalability.
-- **TypeOrm:** An ORM for TypeScript and JavaScript that supports various databases, providing tools for object-relational mapping.
-- **Docker** – A containerization platform that simplifies deployment and environment consistency
+- [**NestJS:**]() – A modular framework for building efficient, scalable [Node.js](http://nodejs.org/) applications  
+- [**TypeScript:**](https://www.typescriptlang.org/) – The main programming language for the bot  
+- [**DiscordJS:**](https://discord.js.org/) – A robust library for interfacing with the Discord API  
+- [**MySql:**](https://www.mysql.com/) A widely-used open-source relational database management system known for its reliability and scalability.
+- [**TypeOrm:**](https://typeorm.io/) An ORM for TypeScript and JavaScript that supports various databases, providing tools for object-relational mapping.
+- [**Docker**](https://www.docker.com/) – A containerization platform that simplifies deployment and environment consistency
 
 ---
 

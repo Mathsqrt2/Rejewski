@@ -16,13 +16,13 @@
         "tsConfigPath": "libs/database/tsconfig.lib.json"
       }
     },
-    "types": {
+    "emailer": {
       "type": "library",
-      "root": "libs/types",
+      "root": "libs/emailer",
       "entryFile": "index",
-      "sourceRoot": "libs/types/src",
+      "sourceRoot": "libs/emailer/src",
       "compilerOptions": {
-        "tsConfigPath": "libs/types/tsconfig.lib.json"
+        "tsConfigPath": "libs/emailer/tsconfig.lib.json"
       }
     },
     "gateway": {
@@ -32,6 +32,24 @@
       "sourceRoot": "libs/gateway/src",
       "compilerOptions": {
         "tsConfigPath": "libs/gateway/tsconfig.lib.json"
+      }
+    },
+    "types": {
+      "type": "library",
+      "root": "libs/types",
+      "entryFile": "index",
+      "sourceRoot": "libs/types/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/types/tsconfig.lib.json"
+      }
+    },
+    "verification": {
+      "type": "library",
+      "root": "libs/verification",
+      "entryFile": "index",
+      "sourceRoot": "libs/verification/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/verification/tsconfig.lib.json"
       }
     }
   }

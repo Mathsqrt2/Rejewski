@@ -11,11 +11,15 @@
     "^.+\\.(t|j)s$": "ts-jest"
   },
   "moduleNameMapper": {
-    "@libs/database/(.*)": "<rootDir>/../libs/database/src/$1",
     "@libs/database": "<rootDir>/../libs/database/src",
-    "@libs/types/(.*)": "<rootDir>/../libs/types/src/$1",
-    "@libs/types": "<rootDir>/../libs/types/src",
+    "@libs/database/(.*)": "<rootDir>/../libs/database/src/$1",
+    "@libs/emailer": "<rootDir>/../libs/emailer/src",
+    "@libs/emailer/(.*)": "<rootDir>/../libs/emailer/src/$1",
+    "@libs/gateway": "<rootDir>/../libs/gateway/src",
     "@libs/gateway/(.*)": "<rootDir>/../libs/gateway/src/$1",
-    "@libs/gateway": "<rootDir>/../libs/gateway/src"
+    "@libs/types": "<rootDir>/../libs/types/src",
+    "@libs/types/(.*)": "<rootDir>/../libs/types/src/$1",
+    "@libs/verification": "<rootDir>/../libs/verification/src",
+    "@libs/verification/(.*)": "<rootDir>/../libs/verification/src/$1"
   }
 }

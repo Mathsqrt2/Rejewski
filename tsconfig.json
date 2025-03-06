@@ -17,6 +17,11 @@
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
+    "types": [
+      "node",
+      "jest",
+      "./.env.d.ts"
+    ],
     "paths": {
       "@libs/database": [
         "libs/database/src"
@@ -24,17 +29,29 @@
       "@libs/database/*": [
         "libs/database/src/*"
       ],
-      "@libs/types": [
-        "libs/types/src"
+      "@libs/emailer": [
+        "libs/emailer/src"
       ],
-      "@libs/types/*": [
-        "libs/types/src/*"
+      "@libs/emailer/*": [
+        "libs/emailer/src/*"
       ],
       "@libs/gateway": [
         "libs/gateway/src"
       ],
       "@libs/gateway/*": [
         "libs/gateway/src/*"
+      ],
+      "@libs/types": [
+        "libs/types/src"
+      ],
+      "@libs/types/*": [
+        "libs/types/src/*"
+      ],
+      "@libs/verification": [
+        "libs/verification/src"
+      ],
+      "@libs/verification/*": [
+        "libs/verification/src/*"
       ]
     }
   }

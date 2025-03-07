@@ -6,8 +6,8 @@ import { Email } from "./email.entity";
 import { Channel } from "./channel.entity";
 import { Code } from "./code.entity";
 
-@Entity({ name: `users` })
-export class User {
+@Entity({ name: `members` })
+export class Member {
 
     @PrimaryGeneratedColumn()
     id: number;
@@ -16,12 +16,15 @@ export class User {
     discordIdHash: string;
 
     @Column({ type: `boolean`, default: false })
-    isBanned?: boolean;
+    isConfirmed: boolean;
 
     @Column({ type: `boolean`, default: false })
-    isAdmin?: boolean;
+    isBanned: boolean;
 
-    @OneToOne(() => Email, email => email.assignedUser)
+    @Column({ type: `boolean`, default: false })
+    isAdmin: boolean;
+
+    @OneToOne(() => Email, email => email.assignedMember)
     @JoinColumn()
     assignedEmail: Email;
 
@@ -31,11 +34,11 @@ export class User {
     @UpdateDateColumn({ type: `timestamp`, nullable: true })
     updatedAt?: Date;
 
-    @OneToMany(() => Channel, chat => chat.assignedUser)
+    @OneToMany(() => Channel, chat => chat.assignedMember)
     @JoinColumn()
     channels: Channel[];
 
-    @OneToMany(() => Code, code => code.assignedUser)
+    @OneToMany(() => Code, code => code.assignedMember)
     @JoinColumn()
     codes: Code[];
 

@@ -15,6 +15,8 @@
     "@libs/database/(.*)": "<rootDir>/../libs/database/src/$1",
     "@libs/emailer": "<rootDir>/../libs/emailer/src",
     "@libs/emailer/(.*)": "<rootDir>/../libs/emailer/src/$1",
+    "@libs/enums": "<rootDir>/../libs/enums/src",
+    "@libs/enums/(.*)": "<rootDir>/../libs/enums/src/$1",
     "@libs/gateway": "<rootDir>/../libs/gateway/src",
     "@libs/gateway/(.*)": "<rootDir>/../libs/gateway/src/$1",
     "@libs/logger": "<rootDir>/../libs/logger/src",

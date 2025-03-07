@@ -30,7 +30,8 @@ export class Logger {
             this.logs.save({
                 content: message,
                 label: `LOG`,
-                tag: config?.tag || null
+                tag: config?.tag || null,
+                duration: config?.startTime ? Date.now() - config.startTime : null,
             }).catch(error => {
                 this.error(`Failed to save log in database.`, { error });
             });
@@ -54,7 +55,8 @@ export class Logger {
             this.logs.save({
                 content: message,
                 label: `WARN`,
-                tag: config?.tag || null
+                tag: config?.tag || null,
+                duration: config?.startTime ? Date.now() - config.startTime : null,
             }).catch(error => {
                 this.error(`Failed to save warn in database.`, { error });
             });
@@ -86,7 +88,8 @@ export class Logger {
                 content: message,
                 label: `ERROR`,
                 error: errorMessage,
-                tag: config?.tag || null
+                tag: config?.tag || null,
+                duration: config?.startTime ? Date.now() - config.startTime : null,
             }).catch(error => {
                 this.error(`Failed to save error in database.`, { error });
             });
@@ -116,6 +119,7 @@ export class Logger {
                 content: message,
                 label: `DEBUG`,
                 tag: config?.tag || null,
+                duration: config?.startTime ? Date.now() - config.startTime : null,
             }).catch(error => {
                 this.error(`Failed to save debug in database.`, { error });
             });

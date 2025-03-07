@@ -1,5 +1,8 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
-import { User } from "./user.entity";
+import {
+    Column, CreateDateColumn, Entity, JoinColumn,
+    OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn
+} from "typeorm";
+import { Member } from "./member.entity";
 import { Code } from "./code.entity";
 
 @Entity({ name: `emails` })
@@ -12,11 +15,11 @@ export class Email {
     emailHash: string;
 
     @Column({ type: `int`, nullable: true })
-    confirmedById: number;
+    memberId?: number;
 
-    @OneToOne(() => User, user => user.assignedEmail, { nullable: true })
-    @JoinColumn()
-    assignedUser: User;
+    @OneToOne(() => Member, member => member.assignedEmail, { nullable: true })
+    @JoinColumn({ name: `memberId` })
+    assignedMember: Member;
 
     @CreateDateColumn({ type: `timestamp` })
     createdAt: Date;

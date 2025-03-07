@@ -37,6 +37,12 @@
       "@libs/emailer/*": [
         "libs/emailer/src/*"
       ],
+      "@libs/enums": [
+        "libs/enums/src"
+      ],
+      "@libs/enums/*": [
+        "libs/enums/src/*"
+      ],
       "@libs/gateway": [
         "libs/gateway/src"
       ],

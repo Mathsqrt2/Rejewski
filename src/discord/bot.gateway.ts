@@ -1,22 +1,25 @@
+import { InjectDiscordClient, On, Once } from "@discord-nestjs/core";
+import { MessagesService } from "./services/messages.service";
+import { ChannelsService } from "./services/channels.service";
+import { MembersService } from "./services/members.service";
+import { Cron, CronExpression } from "@nestjs/schedule";
+import { SettingsService } from "@libs/settings";
+import { Injectable } from "@nestjs/common";
+import { LogsTypes } from "@libs/enums/logs.enum";
+import { Logger } from "@libs/logger";
 import {
     ActivityType, Client, GuildMember,
     PartialGuildMember
 } from "discord.js";
-import { InjectDiscordClient, On, Once } from "@discord-nestjs/core";
-import { Log } from "@libs/database/entities/log.entity";
-import { InjectRepository } from "@nestjs/typeorm";
-import { SettingsService } from "@libs/settings";
-import { Injectable } from "@nestjs/common";
-import { Logger } from "@libs/logger";
-import { Repository } from "typeorm";
-import { Cron, CronExpression } from "@nestjs/schedule";
 
 @Injectable()
 export class BotGateway {
 
     constructor(
-        @InjectRepository(Log) private readonly log: Repository<Log>,
         @InjectDiscordClient() private readonly client: Client,
+        private readonly messagesService: MessagesService,
+        private readonly channelsService: ChannelsService,
+        private readonly memberService: MembersService,
         private readonly settings: SettingsService,
         private readonly logger: Logger,
     ) { }
@@ -29,14 +32,19 @@ export class BotGateway {
     @Once(`ready`)
     public async onBotReady() {
 
+        const startTime = Date.now();
         this.client.user.setActivity({
             name: `✅ W czym mogę służyć?`,
             type: ActivityType.Custom,
         })
 
         try {
-            await this.log.save({ content: `${this.settings.app.name}(${this.client.application.id}) launched.` });
-            this.logger.log(`Application launched successfully.`)
+
+            this.logger.log(`Application ${this.settings.app.name} (${this.client.application.id}) has launched successfully.`, {
+                tag: LogsTypes.INTERNAL_ACTION,
+                startTime,
+            })
+
         } catch (error) {
             this.logger.error(`Failed to launch application.`, { error });
         }
@@ -44,14 +52,19 @@ export class BotGateway {
     }
 
     @On(`guildMemberRemove`)
-    public async onUserLeft(member: GuildMember | PartialGuildMember): Promise<void> {
+    public async onMemberLeft(discordMember: GuildMember | PartialGuildMember): Promise<void> {
 
     }
 
     @On(`guildMemberAdd`)
-    public async onUserJoin(member: GuildMember | PartialGuildMember): Promise<void> {
+    public async onMemberJoin(discordMember: GuildMember | PartialGuildMember): Promise<void> {
 
+        const member = await this.memberService.saveMember(discordMember.id);
+        if (!member) {
+            this.logger.log(`Failed to validate user`);
+        }
 
+        this.channelsService.showValidationChannelToUser(discordMember);
 
     }
 }

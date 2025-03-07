@@ -1,0 +1,4 @@
+export enum LogsTypes {
+    INTERNAL_ACTION = "INTERNAL_ACTION",
+    CHANNEL_CREATED = "CHANNEL_CREATED"
+}

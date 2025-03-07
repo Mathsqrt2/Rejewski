@@ -1,6 +1,6 @@
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Email } from "./email.entity";
-import { User } from "./user.entity";
+import { Member } from "./member.entity";
 
 @Entity({ name: `codes` })
 export class Code {
@@ -15,15 +15,15 @@ export class Code {
     emailId: number;
 
     @ManyToOne(() => Email, email => email.codes)
-    @JoinColumn()
+    @JoinColumn({ name: `emailId` })
     assignedEmail: Email;
 
     @Column({ type: `int` })
-    userId: number;
+    memberId: number;
 
-    @ManyToOne(() => User, user => user.codes)
+    @ManyToOne(() => Member, member => member.codes)
     @JoinColumn({ name: `userId` })
-    assignedUser: User;
+    assignedMember: Member;
 
     @Column({ type: 'timestamp' })
     expireDate: Date;

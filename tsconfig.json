@@ -20,6 +20,8 @@
     "types": [
       "node",
       "jest",
+      "discord.js",
+      "@discord-nestjs/core",
       "./.env.d.ts"
     ],
     "paths": {

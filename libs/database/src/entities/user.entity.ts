@@ -1,6 +1,10 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import {
+    Column, CreateDateColumn, Entity, JoinColumn,
+    OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn
+} from "typeorm";
 import { Email } from "./email.entity";
-import { Chat } from "./chat.entity";
+import { Channel } from "./channel.entity";
+import { Code } from "./code.entity";
 
 @Entity({ name: `users` })
 export class User {
@@ -12,10 +16,10 @@ export class User {
     discordIdHash: string;
 
     @Column({ type: `boolean`, default: false })
-    isBanned: boolean;
+    isBanned?: boolean;
 
     @Column({ type: `boolean`, default: false })
-    isAdmin: boolean;
+    isAdmin?: boolean;
 
     @OneToOne(() => Email, email => email.assignedUser)
     @JoinColumn()
@@ -25,10 +29,14 @@ export class User {
     createdAt: Date;
 
     @UpdateDateColumn({ type: `timestamp`, nullable: true })
-    updatedAt: Date;
+    updatedAt?: Date;
 
-    @OneToMany(() => Chat, chat => chat.assignedUser)
+    @OneToMany(() => Channel, chat => chat.assignedUser)
     @JoinColumn()
-    chats: Chat[];
+    channels: Channel[];
+
+    @OneToMany(() => Code, code => code.assignedUser)
+    @JoinColumn()
+    codes: Code[];
 
 }

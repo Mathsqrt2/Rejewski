@@ -1,8 +1,7 @@
-import { StartLog } from "./entities/start_log.entity";
 import { Email } from "./entities/email.entity";
-import { Chat } from "./entities/chat.entity";
+import { Channel } from "./entities/channel.entity";
 import { Code } from "./entities/code.entity";
 import { User } from "./entities/user.entity";
 import { Log } from "./entities/log.entity";
 
-export const databaseEntities = [Chat, Code, Email, User, StartLog, Log];
+export const databaseEntities = [Channel, Code, Email, User, Log];

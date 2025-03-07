@@ -21,6 +21,9 @@ export class Log {
     @Column({ type: `varchar`, nullable: true, length: 128 })
     tag?: string;
 
+    @Column({ type: `int`, nullable: true })
+    duration?: number;
+
     @CreateDateColumn({ type: `timestamp` })
     createdAt: Date;
 

@@ -1,14 +1,17 @@
 import { databaseEntities } from "@libs/database/database.providers";
-import { BotGatewayService } from "./services/bot.gateway.service";
 import { VerificationModule } from "@libs/verification";
 import { DiscordModule } from "@discord-nestjs/core";
 import { DatabaseModule } from "@libs/database";
 import { TypeOrmModule } from "@nestjs/typeorm";
+import { SettingsModule } from "@libs/settings";
 import { EmailerModule } from "@libs/emailer";
 import { GatewayModule } from "@libs/gateway";
-import { Module } from "@nestjs/common";
 import { LoggerModule } from "@libs/logger";
-import { SettingsModule } from "@libs/settings";
+import { BotGateway } from "./bot.gateway";
+import { Module } from "@nestjs/common";
+import { MessagesService } from "./services/messages.service";
+import { MembersService } from "./services/members.service";
+import { ChannelsService } from "./services/channels.service";
 
 @Module({
     imports: [
@@ -22,7 +25,10 @@ import { SettingsModule } from "@libs/settings";
         LoggerModule
     ],
     providers: [
-        BotGatewayService
+        ChannelsService,
+        MessagesService,
+        MembersService,
+        BotGateway,
     ]
 })
 

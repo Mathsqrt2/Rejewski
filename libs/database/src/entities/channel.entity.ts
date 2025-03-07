@@ -1,19 +1,22 @@
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { User } from "./user.entity";
 
-@Entity({ name: `chats` })
-export class Chat {
+@Entity({ name: `channels` })
+export class Channel {
 
     @PrimaryGeneratedColumn()
     id: number;
 
     @Column({ type: `varchar`, length: 512 })
-    discordChatId: string;
+    discordChannelId: string;
+
+    @Column({ type: `boolean`, default: false })
+    isDeleted: boolean;
 
     @Column({ type: `int`, nullable: true })
-    userId: number;
+    userId?: number;
 
-    @ManyToOne(() => User, user => user.chats, { nullable: true })
+    @ManyToOne(() => User, user => user.channels, { nullable: true })
     @JoinColumn({ name: `userId` })
     assignedUser?: User
 
@@ -21,6 +24,6 @@ export class Chat {
     createdAt: Date;
 
     @UpdateDateColumn({ type: `timestamp`, nullable: true })
-    updatedAt: Date;
+    updatedAt?: Date;
 
 }

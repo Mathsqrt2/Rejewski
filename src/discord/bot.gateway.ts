@@ -26,7 +26,13 @@ export class BotGateway {
 
     @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
     public async removeUnusedChannels(): Promise<void> {
-        // clean channels after users who joined, but never verified.
+        await this.channelsService.removeUnusedChannels();
+        await this.channelsService.updateChannelsInfo();
+    }
+
+    @Cron(CronExpression.EVERY_MINUTE)
+    public async updateChannelInfo(): Promise<void> {
+        await this.channelsService.updateChannelsInfo();
     }
 
     @Once(`ready`)
@@ -64,7 +70,7 @@ export class BotGateway {
             this.logger.log(`Failed to validate user`);
         }
 
-        this.channelsService.showValidationChannelToUser(discordMember);
+        const channel = await this.channelsService.showValidationChannelToUser(discordMember);
 
     }
 }

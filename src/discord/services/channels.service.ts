@@ -38,6 +38,15 @@ export class ChannelsService implements OnApplicationBootstrap {
             throw new Error(`Failed to find specified guild.`);
         }
 
+        const channels: Channel[] = await this.channel.find({ where: { isDeleted: false } });
+
+        for (const channel of channels) {
+            const discordChannel = guild.channels.cache.get(channel.discordId);
+            if (!discordChannel) {
+                this.channel.save({ ...channel, isDeleted: true });
+                this.channels.filter(c => c.discordId !== channel.discordId)
+            }
+        }
 
         return true;
     }
@@ -55,7 +64,7 @@ export class ChannelsService implements OnApplicationBootstrap {
             }
 
             let channel: Channel = await this.channel.findOneBy({ memberId: member.id, isDeleted: false });
-            if (channel) {
+            if (!channel) {
                 return await this.createPrivateChannel(discordMember);
             }
 
@@ -192,6 +201,10 @@ export class ChannelsService implements OnApplicationBootstrap {
         }
 
         return channel;
+    }
+
+    public removeUnusedChannels = async (): Promise<void> => {
+
     }
 
 }

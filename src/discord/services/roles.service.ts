@@ -1,3 +1,4 @@
+import { Roles } from "@libs/enums";
 import { Injectable } from "@nestjs/common";
 import { GuildMember, PartialGuildMember } from "discord.js";
 
@@ -6,6 +7,8 @@ export class RolesService {
 
     constructor() { }
 
-    public assignRoleToUser = (discordMember: GuildMember | PartialGuildMember,) => { }
+    public assignRoleToUser = async (discordMember: GuildMember | PartialGuildMember, role: Roles): Promise<boolean> => {
+        return true;
+    }
 
 }

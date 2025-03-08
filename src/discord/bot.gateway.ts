@@ -5,12 +5,14 @@ import { MembersService } from "./services/members.service";
 import { Cron, CronExpression } from "@nestjs/schedule";
 import { SettingsService } from "@libs/settings";
 import { Injectable } from "@nestjs/common";
-import { LogsTypes } from "@libs/enums/logs.enum";
+import { LogsTypes } from "@libs/enums/logs.type.enum";
 import { Logger } from "@libs/logger";
 import {
     ActivityType, Client, GuildMember,
     PartialGuildMember
 } from "discord.js";
+import { RolesService } from "./services/roles.service";
+import { Roles } from "@libs/enums";
 
 @Injectable()
 export class BotGateway {
@@ -20,6 +22,7 @@ export class BotGateway {
         private readonly messagesService: MessagesService,
         private readonly channelsService: ChannelsService,
         private readonly memberService: MembersService,
+        private readonly rolesService: RolesService,
         private readonly settings: SettingsService,
         private readonly logger: Logger,
     ) { }
@@ -65,12 +68,34 @@ export class BotGateway {
     @On(`guildMemberAdd`)
     public async onMemberJoin(discordMember: GuildMember | PartialGuildMember): Promise<void> {
 
-        const member = await this.memberService.saveMember(discordMember.id);
+        const startTime = Date.now();
+        const [member, isMemberNew] = await this.memberService.saveMember(discordMember.id);
         if (!member) {
-            this.logger.log(`Failed to validate user`);
+            this.logger.error(`Failed to validate user.`, { tag: LogsTypes.INTERNAL_ACTION_FAIL, startTime });
+            return;
+        }
+
+        if (member.isConfirmed) {
+            const isRoleAssigned = await this.rolesService.assignRoleToUser(discordMember, Roles.STUDENT);
+            isRoleAssigned
+                ? this.logger.log(`User role assigned successfully`, { tag: LogsTypes.PERMISSIONS_GRANTED, startTime })
+                : this.logger.error(`Failed to assign role.`, { tag: LogsTypes.PERMISSIONS_FAIL, startTime });
+            return;
         }
 
         const channel = await this.channelsService.showValidationChannelToUser(discordMember);
+        if (!channel) {
+            this.logger.error(`Failed to find validation channel.`,
+                { tag: LogsTypes.INTERNAL_ACTION_FAIL, startTime }
+            );
+            return;
+        }
+
+        if (isMemberNew) {
+            await this.messagesService.displayInviteMessage(channel.id);
+            await this.messagesService.displayServerRules(channel.id);
+            await this.messagesService.displayServerRules(channel.id);
+        }
 
     }
 }

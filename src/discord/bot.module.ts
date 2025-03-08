@@ -12,6 +12,7 @@ import { Module } from "@nestjs/common";
 import { MessagesService } from "./services/messages.service";
 import { MembersService } from "./services/members.service";
 import { ChannelsService } from "./services/channels.service";
+import { RolesService } from "./services/roles.service";
 
 @Module({
     imports: [
@@ -28,6 +29,7 @@ import { ChannelsService } from "./services/channels.service";
         ChannelsService,
         MessagesService,
         MembersService,
+        RolesService,
         BotGateway,
     ]
 })

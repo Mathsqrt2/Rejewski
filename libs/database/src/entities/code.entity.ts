@@ -1,6 +1,7 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { Email } from "./email.entity";
 import { Member } from "./member.entity";
+import { Request } from "./request.entity";
 
 @Entity({ name: `codes` })
 export class Code {
@@ -31,4 +32,7 @@ export class Code {
     @CreateDateColumn({ type: `timestamp` })
     createdAt: Date;
 
+    @OneToMany(() => Request, request => request.assignedMember)
+    @JoinColumn()
+    requests: Request[];
 }

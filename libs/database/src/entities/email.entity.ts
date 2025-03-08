@@ -4,6 +4,7 @@ import {
 } from "typeorm";
 import { Member } from "./member.entity";
 import { Code } from "./code.entity";
+import { Request } from "./request.entity";
 
 @Entity({ name: `emails` })
 export class Email {
@@ -29,5 +30,9 @@ export class Email {
 
     @OneToMany(() => Code, code => code.assignedEmail)
     codes: Code[]
+
+    @OneToMany(() => Request, request => request.assignedMember)
+    @JoinColumn()
+    requests: Request[];
 
 }

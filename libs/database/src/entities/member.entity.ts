@@ -5,6 +5,7 @@ import {
 import { Email } from "./email.entity";
 import { Channel } from "./channel.entity";
 import { Code } from "./code.entity";
+import { Request } from "./request.entity";
 
 @Entity({ name: `members` })
 export class Member {
@@ -41,5 +42,9 @@ export class Member {
     @OneToMany(() => Code, code => code.assignedMember)
     @JoinColumn()
     codes: Code[];
+
+    @OneToMany(() => Request, request => request.assignedMember)
+    @JoinColumn()
+    requests: Request[];
 
 }

@@ -4,6 +4,7 @@ import { Injectable, OnApplicationBootstrap } from '@nestjs/common';
 import { Logger } from '@libs/logger';
 import { Repository } from 'typeorm';
 import { SHA512 } from 'crypto-js'
+import { LogsTypes } from '@libs/enums';
 
 @Injectable()
 export class MembersService implements OnApplicationBootstrap {
@@ -19,23 +20,39 @@ export class MembersService implements OnApplicationBootstrap {
         this.members = await this.member.find();
     }
 
-    public saveMember = async (userDiscordId: string): Promise<Member> => {
+    public saveMember = async (memberDiscordId: string): Promise<[Member, boolean]> => {
+        const startTime = Date.now();
+        let isMemberNew: boolean = false;
 
         try {
-            const discordIdHash = SHA512(userDiscordId).toString();
+            const discordIdHash = SHA512(memberDiscordId).toString();
             let member: Member = await this.member.findOne({ where: { discordIdHash } });
 
             if (!member) {
+
                 member = await this.member.save({ discordIdHash });
-                this.logger.log(`New user ${discordIdHash} joined to the server.`);
+                isMemberNew = true;
+                this.members.push(member);
+                this.logger.log(`New member ${discordIdHash} joined to the server.`,
+                    { tag: LogsTypes.USER_JOINED, startTime }
+                );
+
             } else {
-                this.logger.log(`User ${discordIdHash} found in database.`);
+
+                this.logger.log(`Member ${discordIdHash} found in database.`,
+                    { tag: LogsTypes.DATABASE_READ, startTime }
+                );
+
             }
 
-            return member;
+            return [member, isMemberNew];
 
         } catch (error) {
-            this.logger.error(`Failed to validate user presence.`, { error });
+
+            this.logger.error(`Failed to validate member presence.`,
+                { error, startTime, tag: LogsTypes.DATABASE_FAIL }
+            );
+
             return null;
         }
     }

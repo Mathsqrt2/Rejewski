@@ -1,18 +1,23 @@
 import { Channel } from '@libs/database/entities/channel.entity';
-import { BadRequestException, Injectable, NotFoundException, OnApplicationBootstrap } from '@nestjs/common';
+import {
+    BadRequestException, Injectable, NotFoundException,
+    OnApplicationBootstrap
+} from '@nestjs/common';
 import { InjectDiscordClient } from '@discord-nestjs/core';
 import { Member } from '@libs/database/entities/member.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
+    ChannelType,
     Client, Guild, GuildBasedChannel, GuildChannelManager,
     PermissionsBitField, TextChannel,
     VoiceChannel
 } from 'discord.js';
 import { Repository } from 'typeorm';
 import { SHA512 } from 'crypto-js';
-import { DiscordMember } from '@libs/types/discord';
+import { DiscordChannel, DiscordChannelType, DiscordMember } from '@libs/types/discord';
 import { Logger } from '@libs/logger';
 import { LogsTypes } from '@libs/enums';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class ChannelsService implements OnApplicationBootstrap {
@@ -23,6 +28,7 @@ export class ChannelsService implements OnApplicationBootstrap {
         @InjectRepository(Channel) private readonly channel: Repository<Channel>,
         @InjectRepository(Member) private readonly member: Repository<Member>,
         @InjectDiscordClient() private readonly client: Client,
+        private readonly eventEmitter: EventEmitter2,
         private readonly logger: Logger,
     ) { }
 
@@ -51,7 +57,7 @@ export class ChannelsService implements OnApplicationBootstrap {
         return true;
     }
 
-    public showValidationChannelToUser = async (discordMember: DiscordMember): Promise<TextChannel | VoiceChannel> => {
+    public showValidationChannelToUser = async (discordMember: DiscordMember): Promise<DiscordChannel> => {
 
         const discordIdHash = SHA512(discordMember.id).toString();
         const startTime = Date.now();
@@ -78,7 +84,7 @@ export class ChannelsService implements OnApplicationBootstrap {
         }
     }
 
-    public discoverChannelForUser = async (discordId: string): Promise<TextChannel | VoiceChannel> => {
+    public discoverChannelForUser = async (discordId: string): Promise<DiscordChannel> => {
 
         const guild: Guild = this.client.guilds.cache.get(process.env.GUILD_ID);
         const discordIdHash = SHA512(discordId).toString();
@@ -124,7 +130,7 @@ export class ChannelsService implements OnApplicationBootstrap {
         }
     }
 
-    public createPrivateChannel = async (discordMember: DiscordMember): Promise<TextChannel | VoiceChannel> => {
+    public createPrivateChannel = async (discordMember: DiscordMember): Promise<DiscordChannel> => {
 
         const name: string = discordMember.displayName || discordMember.nickname || discordMember.id;
         const channelsManager: GuildChannelManager = discordMember.guild.channels;
@@ -170,6 +176,7 @@ export class ChannelsService implements OnApplicationBootstrap {
             await this.channel.save({
                 memberId: member.id,
                 discordId: channel.id,
+                isPrivate: true,
             })
 
             this.logger.log(`Channel for member ${discordIdHash} created successfully.`, {
@@ -187,7 +194,7 @@ export class ChannelsService implements OnApplicationBootstrap {
         }
     }
 
-    public findChannelById = async (discordChannelId: string): Promise<TextChannel | VoiceChannel> => {
+    public findChannelById = async (discordChannelId: string): Promise<DiscordChannel> => {
 
         const guild: Guild = this.client.guilds.cache.get(process.env.GUILD_ID);
         if (!guild) {
@@ -205,6 +212,32 @@ export class ChannelsService implements OnApplicationBootstrap {
 
     public removeUnusedChannels = async (): Promise<void> => {
 
+    }
+
+    public findChannelType = async (discordChannelId: string): Promise<DiscordChannelType> => {
+
+        try {
+            const channel = await this.channel.findOne({ where: { discordId: discordChannelId } });
+
+            if (!channel) {
+                await this.channel.save({
+                    discordId: discordChannelId,
+                })
+                return `public`;
+            } else if (channel.isPersonal) {
+                return `personal`;
+            } else if (channel.isAdministration) {
+                return `admin`;
+            } else if (channel.isPrivate) {
+                return `private`;
+            } else {
+                throw new Error(`Unknown channel type.`);
+            }
+
+        } catch (error) {
+            this.logger.error(`Failed to recognize channel type.`, { error });
+            return null;
+        }
     }
 
 }

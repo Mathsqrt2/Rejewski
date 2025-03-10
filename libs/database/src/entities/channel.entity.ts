@@ -13,6 +13,15 @@ export class Channel {
     @Column({ type: `boolean`, default: false })
     isDeleted: boolean;
 
+    @Column({ type: `boolean`, default: false })
+    isPrivate: boolean;
+
+    @Column({ type: `boolean`, default: false })
+    isPersonal: boolean;
+
+    @Column({ type: `boolean`, default: false })
+    isAdministration: boolean;
+
     @Column({ type: `int`, nullable: true })
     memberId?: number;
 

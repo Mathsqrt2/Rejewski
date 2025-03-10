@@ -8,11 +8,15 @@ import { Injectable } from "@nestjs/common";
 import { LogsTypes } from "@libs/enums/logs.type.enum";
 import { Logger } from "@libs/logger";
 import {
-    ActivityType, Client, GuildMember,
+    ActivityType, Client, Events, GuildMember,
+    Message,
     PartialGuildMember
 } from "discord.js";
 import { RolesService } from "./services/roles.service";
 import { Roles } from "@libs/enums";
+import { SHA512 } from 'crypto-js';
+import { DiscordMember } from "@libs/types/discord";
+import { EventEmitter2 } from "@nestjs/event-emitter";
 
 @Injectable()
 export class BotGateway {
@@ -22,6 +26,7 @@ export class BotGateway {
         private readonly messagesService: MessagesService,
         private readonly channelsService: ChannelsService,
         private readonly memberService: MembersService,
+        private readonly eventEmitter: EventEmitter2,
         private readonly rolesService: RolesService,
         private readonly settings: SettingsService,
         private readonly logger: Logger,
@@ -33,13 +38,8 @@ export class BotGateway {
         await this.channelsService.updateChannelsInfo();
     }
 
-    @Cron(CronExpression.EVERY_MINUTE)
-    public async updateChannelInfo(): Promise<void> {
-        await this.channelsService.updateChannelsInfo();
-    }
-
-    @Once(`ready`)
-    public async onBotReady() {
+    @Once(Events.ClientReady)
+    public async onClientReady() {
 
         const startTime = Date.now();
         this.client.user.setActivity({
@@ -60,13 +60,13 @@ export class BotGateway {
 
     }
 
-    @On(`guildMemberRemove`)
-    public async onMemberLeft(discordMember: GuildMember | PartialGuildMember): Promise<void> {
+    @On(Events.GuildMemberRemove)
+    public async onMemberLeft(discordMember: DiscordMember): Promise<void> {
 
     }
 
-    @On(`guildMemberAdd`)
-    public async onMemberJoin(discordMember: GuildMember | PartialGuildMember): Promise<void> {
+    @On(Events.GuildMemberAdd)
+    public async onMemberJoin(discordMember: DiscordMember): Promise<void> {
 
         const startTime = Date.now();
         const [member, isMemberNew] = await this.memberService.saveMember(discordMember.id);
@@ -91,11 +91,55 @@ export class BotGateway {
             return;
         }
 
+        await this.messagesService.displayInviteMessage(channel.id);
         if (isMemberNew) {
-            await this.messagesService.displayInviteMessage(channel.id);
             await this.messagesService.displayServerRules(channel.id);
             await this.messagesService.displayServerRules(channel.id);
         }
 
     }
+
+    @On(Events.ChannelCreate)
+    public async onChannelCreate(): Promise<void> {
+        await this.channelsService.updateChannelsInfo();
+    }
+
+    @On(Events.ChannelDelete)
+    public async onChannelDelete(): Promise<void> {
+        await this.channelsService.updateChannelsInfo();
+    }
+
+    @On(Events.MessageCreate)
+    public async handleMemberMessage(message: Message) {
+
+        if (message.author.bot) {
+            this.logger.log(`Message handling canceled. Author is bot.`);
+            return;
+        }
+
+        const discordIdHash = SHA512(message.author.id).toString();
+        if (!message?.channel) {
+            this.logger.error(`Invalid message metadata for ${discordIdHash}.`);
+            return;
+        }
+
+        try {
+
+            const channel = await this.channelsService.findChannelById(message?.channel.id);
+            if (!channel) {
+                this.logger.warn(`Failed to handle message. Unknown channel.`);
+                return;
+            }
+
+            const channelType = await this.channelsService.findChannelType(message.channel.id);
+
+            const evnetName = `${channelType.toUpperCase()}_MESSAGE`
+            this.eventEmitter.emitAsync(evnetName, message);
+
+        } catch (error) {
+            this.logger.error(`Failed to handle user message.`, { error });
+        }
+    }
+
+
 }

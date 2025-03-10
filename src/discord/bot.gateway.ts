@@ -55,13 +55,12 @@ export class BotGateway {
             })
 
         } catch (error) {
-            this.logger.error(`Failed to launch application.`, { error });
+            this.logger.error(`Failed to launch application.`, {
+                tag: LogsTypes.INTERNAL_ACTION_FAIL,
+                error,
+                startTime,
+            });
         }
-
-    }
-
-    @On(Events.GuildMemberRemove)
-    public async onMemberLeft(discordMember: DiscordMember): Promise<void> {
 
     }
 
@@ -71,22 +70,33 @@ export class BotGateway {
         const startTime = Date.now();
         const [member, isMemberNew] = await this.memberService.saveMember(discordMember.id);
         if (!member) {
-            this.logger.error(`Failed to validate user.`, { tag: LogsTypes.INTERNAL_ACTION_FAIL, startTime });
+            this.logger.error(`Failed to validate user.`, {
+                tag: LogsTypes.INTERNAL_ACTION_FAIL,
+                startTime
+            });
             return;
         }
 
         if (member.isConfirmed) {
             const isRoleAssigned = await this.rolesService.assignRoleToUser(discordMember, Roles.STUDENT);
             isRoleAssigned
-                ? this.logger.log(`User role assigned successfully`, { tag: LogsTypes.PERMISSIONS_GRANTED, startTime })
-                : this.logger.error(`Failed to assign role.`, { tag: LogsTypes.PERMISSIONS_FAIL, startTime });
+                ? this.logger.log(`User role assigned successfully`, {
+                    tag: LogsTypes.PERMISSIONS_GRANTED,
+                    startTime
+                })
+                : this.logger.error(`Failed to assign role.`, {
+                    tag: LogsTypes.PERMISSIONS_FAIL,
+                    startTime
+                });
             return;
         }
 
         const channel = await this.channelsService.showValidationChannelToUser(discordMember);
         if (!channel) {
-            this.logger.error(`Failed to find validation channel.`,
-                { tag: LogsTypes.INTERNAL_ACTION_FAIL, startTime }
+            this.logger.error(`Failed to find validation channel.`, {
+                tag: LogsTypes.INTERNAL_ACTION_FAIL,
+                startTime
+            }
             );
             return;
         }
@@ -112,14 +122,21 @@ export class BotGateway {
     @On(Events.MessageCreate)
     public async handleMemberMessage(message: Message) {
 
+        const startTime: number = Date.now();
         if (message.author.bot) {
-            this.logger.log(`Message handling canceled. Author is bot.`);
+            this.logger.error(`Message handling canceled. Author is bot.`, {
+                tag: LogsTypes.INVALID_PAYLOAD,
+                startTime,
+            });
             return;
         }
 
         const discordIdHash = SHA512(message.author.id).toString();
         if (!message?.channel) {
-            this.logger.error(`Invalid message metadata for ${discordIdHash}.`);
+            this.logger.error(`Invalid message metadata for ${discordIdHash}.`, {
+                tag: LogsTypes.INVALID_PAYLOAD,
+                startTime
+            });
             return;
         }
 
@@ -127,17 +144,28 @@ export class BotGateway {
 
             const channel = await this.channelsService.findChannelById(message?.channel.id);
             if (!channel) {
-                this.logger.warn(`Failed to handle message. Unknown channel.`);
+                this.logger.warn(`Failed to handle message. Unknown channel.`, {
+                    tag: LogsTypes.UNKNOWN_CHANNEL,
+                    startTime
+                });
                 return;
             }
 
             const channelType = await this.channelsService.findChannelType(message.channel.id);
 
             const evnetName = `${channelType.toUpperCase()}_MESSAGE`
-            this.eventEmitter.emitAsync(evnetName, message);
+            await this.eventEmitter.emitAsync(evnetName, message);
+            this.logger.log(`Evenr ${evnetName} emitted successfully.`, {
+                tag: LogsTypes.EVENT_EMITTED,
+                startTime
+            });
 
         } catch (error) {
-            this.logger.error(`Failed to handle user message.`, { error });
+            this.logger.error(`Failed to handle user message.`, {
+                tag: LogsTypes.INTERNAL_ACTION_FAIL,
+                error,
+                startTime
+            });
         }
     }
 

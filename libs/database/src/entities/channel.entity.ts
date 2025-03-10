@@ -25,7 +25,7 @@ export class Channel {
     @Column({ type: `int`, nullable: true })
     memberId?: number;
 
-    @ManyToOne(() => Member, member => member.channels, { nullable: true })
+    @ManyToOne(() => Member, member => member.channels, { nullable: true, onDelete: `CASCADE` })
     @JoinColumn({ name: `memberId` })
     assignedMember?: Member
 

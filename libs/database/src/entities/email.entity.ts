@@ -18,7 +18,7 @@ export class Email {
     @Column({ type: `int`, nullable: true })
     memberId?: number;
 
-    @OneToOne(() => Member, member => member.assignedEmail, { nullable: true })
+    @OneToOne(() => Member, member => member.assignedEmail, { nullable: true, onDelete: `CASCADE` })
     @JoinColumn({ name: `memberId` })
     assignedMember: Member;
 

@@ -78,7 +78,11 @@ export class ChannelsService implements OnApplicationBootstrap {
 
         } catch (error) {
 
-            this.logger.error(`Failed to show validation channel to user.`, { error, startTime });
+            this.logger.error(`Failed to show validation channel to user.`, {
+                tag: LogsTypes.VALIDATION_FAIL,
+                error,
+                startTime
+            });
             return null;
 
         }
@@ -109,7 +113,10 @@ export class ChannelsService implements OnApplicationBootstrap {
             if (!discordChannel) {
                 this.channel.save({ ...channel, isDeleted: true });
                 this.channels = this.channels.filter(channel => channel.discordId !== discordChannel.id);
-                this.logger.warn(`Failed to discorver channel for user ${discordChannel.name}`);
+                this.logger.error(`Failed to discorver channel for user ${discordChannel.name}`, {
+                    tag: LogsTypes.INTERNAL_ACTION_FAIL,
+                    startTime
+                });
                 return;
             }
 
@@ -124,7 +131,11 @@ export class ChannelsService implements OnApplicationBootstrap {
 
         } catch (error) {
 
-            this.logger.error(`Failed to discover channel for user ${discordIdHash}`, { error, startTime });
+            this.logger.error(`Failed to discover channel for user ${discordIdHash}`, {
+                tag: LogsTypes.INTERNAL_ACTION_FAIL,
+                error,
+                startTime,
+            });
             return null;
 
         }
@@ -188,7 +199,11 @@ export class ChannelsService implements OnApplicationBootstrap {
 
         } catch (error) {
 
-            this.logger.error(`Failed to create new channel for user ${discordIdHash}`, { error, startTime });
+            this.logger.error(`Failed to create new channel for user ${discordIdHash}`, {
+                tag: LogsTypes.CHANNEL_CREATE_FAIL,
+                error,
+                startTime
+            });
             return null;
 
         }
@@ -203,11 +218,11 @@ export class ChannelsService implements OnApplicationBootstrap {
 
         const channel: GuildBasedChannel = guild.channels.cache.get(discordChannelId);
 
-        if (!channel || !(channel instanceof TextChannel) || !channel.isVoiceBased()) {
+        if (!channel || (!channel.isTextBased() && !channel.isVoiceBased())) {
             throw new Error(`Failed to find correct channel.`);
         }
 
-        return channel;
+        return channel as DiscordChannel;
     }
 
     public removeUnusedChannels = async (): Promise<void> => {
@@ -216,6 +231,7 @@ export class ChannelsService implements OnApplicationBootstrap {
 
     public findChannelType = async (discordChannelId: string): Promise<DiscordChannelType> => {
 
+        const startTime: number = Date.now();
         try {
             const channel = await this.channel.findOne({ where: { discordId: discordChannelId } });
 
@@ -235,7 +251,11 @@ export class ChannelsService implements OnApplicationBootstrap {
             }
 
         } catch (error) {
-            this.logger.error(`Failed to recognize channel type.`, { error });
+            this.logger.error(`Failed to recognize channel type.`, {
+                tag: LogsTypes.VALIDATION_FAIL,
+                error,
+                startTime,
+            });
             return null;
         }
     }

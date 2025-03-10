@@ -33,14 +33,18 @@ export class MembersService implements OnApplicationBootstrap {
                 member = await this.member.save({ discordIdHash });
                 isMemberNew = true;
                 this.members.push(member);
-                this.logger.log(`New member ${discordIdHash} joined to the server.`,
-                    { tag: LogsTypes.USER_JOINED, startTime }
+                this.logger.log(`New member ${discordIdHash} joined to the server.`, {
+                    tag: LogsTypes.USER_JOINED,
+                    startTime
+                }
                 );
 
             } else {
 
-                this.logger.log(`Member ${discordIdHash} found in database.`,
-                    { tag: LogsTypes.DATABASE_READ, startTime }
+                this.logger.log(`Member ${discordIdHash} found in database.`, {
+                    tag: LogsTypes.DATABASE_READ,
+                    startTime
+                }
                 );
 
             }
@@ -49,9 +53,11 @@ export class MembersService implements OnApplicationBootstrap {
 
         } catch (error) {
 
-            this.logger.error(`Failed to validate member presence.`,
-                { error, startTime, tag: LogsTypes.DATABASE_FAIL }
-            );
+            this.logger.error(`Failed to validate member presence.`, {
+                tag: LogsTypes.DATABASE_FAIL,
+                error,
+                startTime
+            });
 
             return null;
         }

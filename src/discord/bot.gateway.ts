@@ -152,10 +152,9 @@ export class BotGateway {
             }
 
             const channelType = await this.channelsService.findChannelType(message.channel.id);
-
             const evnetName = `${channelType.toUpperCase()}_MESSAGE`
             await this.eventEmitter.emitAsync(evnetName, message);
-            this.logger.log(`Evenr ${evnetName} emitted successfully.`, {
+            this.logger.log(`Event ${evnetName} emitted successfully.`, {
                 tag: LogsTypes.EVENT_EMITTED,
                 startTime
             });

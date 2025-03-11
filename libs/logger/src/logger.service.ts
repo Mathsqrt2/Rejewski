@@ -10,6 +10,7 @@ export class Logger {
 
     private appName: string = __dirname.split("\\").pop();
     private logger: NestLogger;
+    private textFieldMaxLength = 65534;
 
     constructor(
         @InjectRepository(Log) private readonly logs: Repository<Log>,
@@ -25,10 +26,11 @@ export class Logger {
 
         const context = config?.context || null;
         const save = config?.save ?? this.shouldSave();
+        const content = message.toString().substring(0, this.textFieldMaxLength);
 
         if (save) {
             this.logs.save({
-                content: message,
+                content,
                 label: `LOG`,
                 tag: config?.tag || null,
                 duration: config?.startTime ? Date.now() - config.startTime : null,
@@ -50,10 +52,11 @@ export class Logger {
 
         const context = config?.context || null;
         const save = config?.save ?? this.shouldSave();
+        const content = message.toString().substring(0, this.textFieldMaxLength);
 
         if (save) {
             this.logs.save({
-                content: message,
+                content,
                 label: `WARN`,
                 tag: config?.tag || null,
                 duration: config?.startTime ? Date.now() - config.startTime : null,
@@ -76,6 +79,7 @@ export class Logger {
         const context = config?.context || null;
         const save = config?.save ?? this.shouldSave();
         const error = config?.error || null;
+        const content = message.toString().substring(0, this.textFieldMaxLength);
 
         const errorMessage: string = config?.error
             ? typeof config.error === `string`
@@ -85,7 +89,7 @@ export class Logger {
 
         if (save) {
             this.logs.save({
-                content: message,
+                content,
                 label: `ERROR`,
                 error: errorMessage,
                 tag: config?.tag || null,
@@ -112,10 +116,11 @@ export class Logger {
 
         const context = config?.context || null;
         const save = config?.save ?? this.shouldSave();
+        const content = message.toString().substring(0, this.textFieldMaxLength);
 
         if (save) {
             this.logs.save({
-                content: message,
+                content,
                 label: `DEBUG`,
                 tag: config?.tag || null,
                 duration: config?.startTime ? Date.now() - config.startTime : null,

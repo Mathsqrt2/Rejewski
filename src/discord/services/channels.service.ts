@@ -17,7 +17,6 @@ import { SHA512 } from 'crypto-js';
 import { DiscordChannel, DiscordChannelType, DiscordMember } from '@libs/types/discord';
 import { Logger } from '@libs/logger';
 import { LogsTypes } from '@libs/enums';
-import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class ChannelsService implements OnApplicationBootstrap {
@@ -28,7 +27,6 @@ export class ChannelsService implements OnApplicationBootstrap {
         @InjectRepository(Channel) private readonly channel: Repository<Channel>,
         @InjectRepository(Member) private readonly member: Repository<Member>,
         @InjectDiscordClient() private readonly client: Client,
-        private readonly eventEmitter: EventEmitter2,
         private readonly logger: Logger,
     ) { }
 
@@ -217,7 +215,6 @@ export class ChannelsService implements OnApplicationBootstrap {
         }
 
         const channel: GuildBasedChannel = guild.channels.cache.get(discordChannelId);
-
         if (!channel || (!channel.isTextBased() && !channel.isVoiceBased())) {
             throw new Error(`Failed to find correct channel.`);
         }

@@ -13,6 +13,7 @@ import { MessagesService } from "./services/messages.service";
 import { MembersService } from "./services/members.service";
 import { ChannelsService } from "./services/channels.service";
 import { RolesService } from "./services/roles.service";
+import { ContentService } from "./services/content.service";
 
 @Module({
     imports: [
@@ -28,6 +29,7 @@ import { RolesService } from "./services/roles.service";
     providers: [
         ChannelsService,
         MessagesService,
+        ContentService,
         MembersService,
         RolesService,
         BotGateway,

@@ -27,16 +27,21 @@ export class Logger {
         const context = config?.context || null;
         const save = config?.save ?? this.shouldSave();
         const content = message.toString().substring(0, this.textFieldMaxLength);
+        const display = config?.display ?? true;
 
         if (save) {
             this.logs.save({
                 content,
                 label: `LOG`,
-                tag: config?.tag || null,
+                tag: config?.tag ?? null,
                 duration: config?.startTime ? Date.now() - config.startTime : null,
             }).catch(error => {
                 this.error(`Failed to save log in database.`, { error });
             });
+        }
+
+        if (!display) {
+            return;
         }
 
         if (!this.shouldLog()) {
@@ -50,9 +55,10 @@ export class Logger {
 
     public warn = (message: any, config?: LoggerConfig): void => {
 
-        const context = config?.context || null;
+        const context = config?.context ?? null;
         const save = config?.save ?? this.shouldSave();
         const content = message.toString().substring(0, this.textFieldMaxLength);
+        const display = config?.display ?? true;
 
         if (save) {
             this.logs.save({
@@ -63,6 +69,10 @@ export class Logger {
             }).catch(error => {
                 this.error(`Failed to save warn in database.`, { error });
             });
+        }
+
+        if (!display) {
+            return;
         }
 
         if (!this.shouldLog()) {
@@ -76,10 +86,11 @@ export class Logger {
 
     public error = (message: any, config?: ErrorConfig): void => {
 
-        const context = config?.context || null;
+        const context = config?.context ?? null;
         const save = config?.save ?? this.shouldSave();
-        const error = config?.error || null;
+        const error = config?.error ?? null;
         const content = message.toString().substring(0, this.textFieldMaxLength);
+        const display = config?.display ?? true;
 
         const errorMessage: string = config?.error
             ? typeof config.error === `string`
@@ -92,11 +103,15 @@ export class Logger {
                 content,
                 label: `ERROR`,
                 error: errorMessage,
-                tag: config?.tag || null,
+                tag: config?.tag ?? null,
                 duration: config?.startTime ? Date.now() - config.startTime : null,
             }).catch(error => {
                 this.error(`Failed to save error in database.`, { error });
             });
+        }
+
+        if (!display) {
+            return;
         }
 
         if (!this.shouldLog()) {
@@ -104,29 +119,36 @@ export class Logger {
         }
 
         if (error) {
-            this.logger.error(error);
+            context
+                ? NestLogger.error(error, context)
+                : this.logger.error(error);
         }
 
         context
-            ? this.logger.error(message, context)
+            ? NestLogger.error(message, context)
             : this.logger.error(message);
     }
 
     public debug = (message: any, config?: LoggerConfig): void => {
 
-        const context = config?.context || null;
+        const context = config?.context ?? null;
         const save = config?.save ?? this.shouldSave();
         const content = message.toString().substring(0, this.textFieldMaxLength);
+        const display = config?.display ?? true;
 
         if (save) {
             this.logs.save({
                 content,
                 label: `DEBUG`,
-                tag: config?.tag || null,
+                tag: config?.tag ?? null,
                 duration: config?.startTime ? Date.now() - config.startTime : null,
             }).catch(error => {
                 this.error(`Failed to save debug in database.`, { error });
             });
+        }
+
+        if (!display) {
+            return;
         }
 
         if (!this.shouldLog()) {

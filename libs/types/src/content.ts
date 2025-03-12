@@ -1,0 +1,1 @@
+export type ContentStorage = { [key: string]: (p?: string) => string };

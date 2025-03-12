@@ -3,6 +3,7 @@ export type LoggerConfig = {
     save?: boolean,
     tag?: string,
     startTime?: number,
+    display?: boolean,
 }
 
 export type ErrorConfig = LoggerConfig & {

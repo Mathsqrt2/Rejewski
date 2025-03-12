@@ -13,6 +13,7 @@ import { Logger } from "@libs/logger";
 import { SHA512 } from "crypto-js";
 import { ContentService } from "./content.service";
 import { Content } from "src/app.content";
+import { MessageType } from "@libs/types/messages";
 
 @Injectable()
 export class MessagesService {
@@ -66,9 +67,6 @@ export class MessagesService {
                 return;
             }
 
-
-
-
         } catch (error) {
             this.logger.error(`Failed to handle private channel message.`, { error, startTime });
         }
@@ -97,36 +95,38 @@ export class MessagesService {
         return channel;
     }
 
-    public sendNewMembersInviteMessage = async (textChannelId: string): Promise<void> => {
+    private findMessageContent = (type: MessageType, param?: unknown): string => {
+        switch (type) {
+            case `welcomeNewMember`: return Content.messages.welcomeNewMember();
+            case `welcomeReturningMember`: return Content.messages.welcomeReturningMember();
+            case `askAboutEmail`: return Content.messages.askAboutEmail();
+            case `retryToAskAboutEmail`: return Content.messages.retryToAskAboutEmail();
+            case `respondToStrangeEmailFormat`: return Content.messages.respondToStrangeEmailFormat();
+            case `respondToWrongMessage`: return Content.messages.respondToWrongMessage();
+            case `askAboutCode`: return Content.messages.askAboutCode(param.toString());
+            case `informAboutWrongCode`: return Content.messages.informAboutWrongCode(param.toString());
+            case `retryToAskAboutCode`: return Content.messages.retryToAskAboutCode();
+            case `sendServerRules`: return Content.messages.sendServerRules();
+        }
+    }
+
+    public sendMessage = async (channelId: string, type: MessageType, param?: unknown): Promise<void> => {
 
         const startTime: number = Date.now();
+
         try {
+            const channel = this.getSendableChannel(channelId);
+            const message: string = this.findMessageContent(type, param || null);
 
-            const channel = this.getSendableChannel(textChannelId);
-            channel.send(Content.messages.message1());
+            if (!message) {
+                throw new Error(`Message from template: "${type}" is empty.`)
+            }
 
+            await channel.send(message);
+            this.logger.log(`Message sent successfully.`);
         } catch (error) {
-
             this.logger.error(Content.error.failedToDisplayInviteMessage(), { error, startTime })
-
         }
 
     }
-
-    public sendReturningMembersInviteMessage = async (textChannelId: string): Promise<void> => {
-
-    }
-
-    public sendServerRules = async (channelId: string): Promise<void> => {
-
-    }
-
-    public askAboutEmail = async (channelId: string): Promise<void> => {
-
-    }
-
-    public askAboutCode = async (channelId: string): Promise<void> => {
-
-    }
-
 }

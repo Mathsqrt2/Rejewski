@@ -40,11 +40,7 @@ export class Logger {
             });
         }
 
-        if (!display) {
-            return;
-        }
-
-        if (!this.shouldLog()) {
+        if (!this.shouldLog() || !display) {
             return;
         }
 
@@ -71,11 +67,7 @@ export class Logger {
             });
         }
 
-        if (!display) {
-            return;
-        }
-
-        if (!this.shouldLog()) {
+        if (!this.shouldLog() || !display) {
             return;
         }
 
@@ -91,6 +83,7 @@ export class Logger {
         const error = config?.error ?? null;
         const content = message.toString().substring(0, this.textFieldMaxLength);
         const display = config?.display ?? true;
+        const displayError = config.displayError ?? true;
 
         const errorMessage: string = config?.error
             ? typeof config.error === `string`
@@ -110,23 +103,20 @@ export class Logger {
             });
         }
 
-        if (!display) {
+        if (!this.shouldLog() || !display) {
             return;
-        }
-
-        if (!this.shouldLog()) {
-            return;
-        }
-
-        if (error) {
-            context
-                ? NestLogger.error(error, context)
-                : this.logger.error(error);
         }
 
         context
             ? NestLogger.error(message, context)
             : this.logger.error(message);
+
+        if (error && displayError) {
+            const errorMessage: string = typeof error === `string` ? error : error.message;
+            context
+                ? NestLogger.error(errorMessage, context)
+                : this.logger.error(errorMessage);
+        }
     }
 
     public debug = (message: any, config?: LoggerConfig): void => {
@@ -147,11 +137,7 @@ export class Logger {
             });
         }
 
-        if (!display) {
-            return;
-        }
-
-        if (!this.shouldLog()) {
+        if (!this.shouldLog() || !display) {
             return;
         }
 

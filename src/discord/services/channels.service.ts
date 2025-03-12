@@ -243,14 +243,15 @@ export class ChannelsService implements OnApplicationBootstrap {
                 return `admin`;
             } else if (channel.isPrivate) {
                 return `private`;
+            } else if (!channel.isPersonal && !channel.isPrivate && !channel.isAdministration) {
+                return `public`;
             } else {
                 throw new Error(`Unknown channel type.`);
             }
 
         } catch (error) {
-            this.logger.error(`Failed to recognize channel type.`, {
+            this.logger.warn(`Failed to recognize channel type ${discordChannelId}, ${error?.message}.`, {
                 tag: LogsTypes.VALIDATION_FAIL,
-                error,
                 startTime,
             });
             return null;

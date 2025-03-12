@@ -102,14 +102,12 @@ export class BotGateway {
         }
 
         if (isMemberNew) {
-            await this.messagesService.sendNewMembersInviteMessage(channel.id);
+            await this.messagesService.sendMessage(channel.id, `welcomeNewMember`);
         } else {
-            await this.messagesService.sendReturningMembersInviteMessage(channel.id);
+            await this.messagesService.sendMessage(channel.id, `welcomeReturningMember`);
         }
-
-        await this.messagesService.sendServerRules(channel.id);
-        await this.messagesService.askAboutEmail(channel.id);
-
+        await this.messagesService.sendMessage(channel.id, `sendServerRules`);
+        await this.messagesService.sendMessage(channel.id, `askAboutEmail`);
     }
 
     @On(Events.ChannelCreate)
@@ -127,7 +125,7 @@ export class BotGateway {
 
         const startTime: number = Date.now();
         if (message.author.bot) {
-            this.logger.error(`Message handling canceled. Author is bot.`, {
+            this.logger.warn(`Message handling canceled. Author is bot.`, {
                 tag: LogsTypes.INVALID_PAYLOAD,
                 startTime,
             });
@@ -155,6 +153,14 @@ export class BotGateway {
             }
 
             const channelType = await this.channelsService.findChannelType(message.channel.id);
+            if (!channelType) {
+                this.logger.warn(`Failed to handle message. Unknown channel type.`, {
+                    tag: LogsTypes.UNKNOWN_CHANNEL,
+                    startTime
+                });
+                return;
+            }
+
             const evnetName = `${channelType.toUpperCase()}_MESSAGE`
             await this.eventEmitter.emitAsync(evnetName, message);
             this.logger.log(`Event ${evnetName} emitted successfully.`, {

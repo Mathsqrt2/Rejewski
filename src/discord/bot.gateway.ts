@@ -101,11 +101,14 @@ export class BotGateway {
             return;
         }
 
-        await this.messagesService.displayInviteMessage(channel.id);
         if (isMemberNew) {
-            await this.messagesService.displayServerRules(channel.id);
-            await this.messagesService.displayServerRules(channel.id);
+            await this.messagesService.sendNewMembersInviteMessage(channel.id);
+        } else {
+            await this.messagesService.sendReturningMembersInviteMessage(channel.id);
         }
+
+        await this.messagesService.sendServerRules(channel.id);
+        await this.messagesService.askAboutEmail(channel.id);
 
     }
 

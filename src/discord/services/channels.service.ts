@@ -55,7 +55,7 @@ export class ChannelsService implements OnApplicationBootstrap {
         return true;
     }
 
-    public showValidationChannelToUser = async (discordMember: DiscordMember): Promise<DiscordChannel> => {
+    public showValidationChannelToUser = async (discordMember: DiscordMember): Promise<TextChannel> => {
 
         const discordIdHash = SHA512(discordMember.id).toString();
         const startTime = Date.now();
@@ -86,7 +86,7 @@ export class ChannelsService implements OnApplicationBootstrap {
         }
     }
 
-    public discoverChannelForUser = async (discordId: string): Promise<DiscordChannel> => {
+    public discoverChannelForUser = async (discordId: string): Promise<TextChannel> => {
 
         const guild: Guild = this.client.guilds.cache.get(process.env.GUILD_ID);
         const discordIdHash = SHA512(discordId).toString();
@@ -107,7 +107,7 @@ export class ChannelsService implements OnApplicationBootstrap {
                 where: { memberId: member.id, isDeleted: false }
             });
 
-            const discordChannel = guild.channels.cache.get(channel.discordId) as TextChannel | VoiceChannel;
+            const discordChannel = guild.channels.cache.get(channel.discordId) as TextChannel;
             if (!discordChannel) {
                 this.channel.save({ ...channel, isDeleted: true });
                 this.channels = this.channels.filter(channel => channel.discordId !== discordChannel.id);
@@ -139,7 +139,7 @@ export class ChannelsService implements OnApplicationBootstrap {
         }
     }
 
-    public createPrivateChannel = async (discordMember: DiscordMember): Promise<DiscordChannel> => {
+    public createPrivateChannel = async (discordMember: DiscordMember): Promise<TextChannel> => {
 
         const name: string = discordMember.displayName || discordMember.nickname || discordMember.id;
         const channelsManager: GuildChannelManager = discordMember.guild.channels;

@@ -6,12 +6,13 @@ import { DiscordChannel } from "@libs/types/discord";
 import { Injectable } from "@nestjs/common";
 import { OnEvent } from "@nestjs/event-emitter";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Client, Message } from "discord.js";
+import { Client, Message, SendableChannels, TextChannel } from "discord.js";
 import { Repository } from "typeorm";
 import { ChannelsService } from "./channels.service";
 import { Logger } from "@libs/logger";
 import { SHA512 } from "crypto-js";
 import { ContentService } from "./content.service";
+import { Content } from "src/app.content";
 
 @Injectable()
 export class MessagesService {
@@ -51,9 +52,10 @@ export class MessagesService {
         const startTime = Date.now();
         try {
 
-            const discordChannel: DiscordChannel = await this.channelsService.findChannelById(message.channelId)
-            const channel: Channel = await this.channel.findOne({ where: { discordId: message.channelId }, relations: ['assignedMember'] });
-
+            const channel: Channel = await this.channel.findOne({
+                where: { discordId: message.channelId },
+                relations: ['assignedMember']
+            });
             if (!channel) {
                 this.logger.error(`Invalid channel.`, { startTime });
             }
@@ -66,6 +68,7 @@ export class MessagesService {
 
 
 
+
         } catch (error) {
             this.logger.error(`Failed to handle private channel message.`, { error, startTime });
         }
@@ -75,13 +78,46 @@ export class MessagesService {
     @OnEvent(AppEvents.PersonalMessage, { async: true })
     public async handlePersonalChannelMessage(message: Message): Promise<void> {
 
-    }
-
-    public displayInviteMessage = async (channelId: string): Promise<void> => {
 
     }
 
-    public displayServerRules = async (channelId: string): Promise<void> => {
+    private getSendableChannel = (textChannelId: string): SendableChannels => {
+
+        const channel = this.client.channels.cache.get(textChannelId);
+        if (!channel) {
+            this.logger.error(`Failed to find specified channel.`);
+            throw new Error(`Failed to find specified channel.`);
+        }
+
+        if (!channel.isSendable()) {
+            this.logger.error(`Specified channel is not sendable.`);
+            throw new Error(`Specified channel is not sendable.`);
+        }
+
+        return channel;
+    }
+
+    public sendNewMembersInviteMessage = async (textChannelId: string): Promise<void> => {
+
+        const startTime: number = Date.now();
+        try {
+
+            const channel = this.getSendableChannel(textChannelId);
+            channel.send(Content.messages.message1());
+
+        } catch (error) {
+
+            this.logger.error(Content.error.failedToDisplayInviteMessage(), { error, startTime })
+
+        }
+
+    }
+
+    public sendReturningMembersInviteMessage = async (textChannelId: string): Promise<void> => {
+
+    }
+
+    public sendServerRules = async (channelId: string): Promise<void> => {
 
     }
 

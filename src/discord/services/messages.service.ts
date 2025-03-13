@@ -1,19 +1,25 @@
-import { InjectDiscordClient } from "@discord-nestjs/core";
+import {
+    ActionRowBuilder, ButtonBuilder, ButtonComponent,
+    ButtonInteraction, ButtonStyle, Client, Events, Message,
+    SendableChannels
+} from "discord.js";
+import { InjectDiscordClient, On } from "@discord-nestjs/core";
 import { Channel } from "@libs/database/entities/channel.entity";
 import { Member } from "@libs/database/entities/member.entity";
-import { AppEvents } from "@libs/enums/events.enum";
-import { DiscordChannel } from "@libs/types/discord";
-import { Injectable } from "@nestjs/common";
-import { OnEvent } from "@nestjs/event-emitter";
-import { InjectRepository } from "@nestjs/typeorm";
-import { Client, Message, SendableChannels, TextChannel } from "discord.js";
-import { Repository } from "typeorm";
-import { ChannelsService } from "./channels.service";
-import { Logger } from "@libs/logger";
-import { SHA512 } from "crypto-js";
-import { ContentService } from "./content.service";
-import { Content } from "src/app.content";
 import { BotResponse } from "@libs/enums/responses.enum";
+import { ChannelsService } from "./channels.service";
+import { AppEvents } from "@libs/enums/events.enum";
+import { InjectRepository } from "@nestjs/typeorm";
+import { ContentService } from "./content.service";
+import { OnEvent } from "@nestjs/event-emitter";
+import { Injectable } from "@nestjs/common";
+import { Content } from "src/app.content";
+import { Logger } from "@libs/logger";
+import { Repository } from "typeorm";
+import { SHA512 } from "crypto-js";
+import { DiscordEvents } from "@libs/enums/discord.events.enum";
+import { RolesService } from "./roles.service";
+import { Roles } from "@libs/enums";
 
 @Injectable()
 export class MessagesService {
@@ -24,6 +30,7 @@ export class MessagesService {
         @InjectDiscordClient() private readonly client: Client,
         private readonly channelsService: ChannelsService,
         private readonly contentService: ContentService,
+        private readonly rolesService: RolesService,
         private readonly logger: Logger,
     ) { }
 
@@ -105,8 +112,8 @@ export class MessagesService {
             case BotResponse.retryToAskAboutEmail: return Content.messages.retryToAskAboutEmail();
             case BotResponse.respondToStrangeEmailFormat: return Content.messages.respondToStrangeEmailFormat();
             case BotResponse.respondToWrongMessage: return Content.messages.respondToWrongMessage();
-            case BotResponse.askAboutCode: return Content.messages.askAboutCode(param.toString());
-            case BotResponse.informAboutWrongCode: return Content.messages.informAboutWrongCode(param.toString());
+            case BotResponse.askAboutCode: return Content.messages.askAboutCode(param?.toString() || null);
+            case BotResponse.informAboutWrongCode: return Content.messages.informAboutWrongCode(param?.toString() || null);
             case BotResponse.retryToAskAboutCode: return Content.messages.retryToAskAboutCode();
             case BotResponse.sendServerRules: return Content.messages.sendServerRules();
         }
@@ -124,10 +131,55 @@ export class MessagesService {
             }
 
             await channel.send(message);
-            this.logger.log(`Message sent successfully.`);
+            this.logger.log(`Message sent successfully.`, { startTime });
         } catch (error) {
             this.logger.error(Content.error.failedToDisplayInviteMessage(), { error, startTime })
         }
+    }
+
+    public sendRulesButton = async (channelId: string): Promise<void> => {
+
+        const startTime: number = Date.now();
+        try {
+
+            const channel = this.getSendableChannel(channelId);
+            const button = new ButtonBuilder()
+                .setCustomId(DiscordEvents.acceptRules)
+                .setLabel(Content.interface.rulesAcceptButton())
+                .setStyle(ButtonStyle.Success);
+
+            const row = new ActionRowBuilder<ButtonBuilder>().addComponents(button);
+            await channel.send({
+                content: Content.messages.askAboutAcceptanceOfRules(),
+                components: [row],
+            })
+
+        } catch (error) {
+            this.logger.error(`Failed to send rules button.`, { error, startTime });
+        }
 
     }
+
+    public disableRulesButton = async (interaction: ButtonInteraction): Promise<void> => {
+
+        const startTime: number = Date.now();
+        const originalMessage = await interaction.channel?.messages.fetch(interaction.message.id);
+        if (!originalMessage) {
+            this.logger.warn(`Original message doesn't exist`, { startTime });
+            return;
+        }
+
+        const button = new ButtonBuilder()
+            .setCustomId(DiscordEvents.cancelRulesAcceptance)
+            .setLabel(Content.interface.cancelRulesAcceptance())
+            .setStyle(ButtonStyle.Danger);
+
+        const row = new ActionRowBuilder<ButtonBuilder>().addComponents(button);
+        await originalMessage.edit({
+            content: interaction.message?.content,
+            components: [row],
+        })
+    }
+
+
 }

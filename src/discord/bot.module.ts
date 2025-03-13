@@ -14,6 +14,7 @@ import { MembersService } from "./services/members.service";
 import { ChannelsService } from "./services/channels.service";
 import { RolesService } from "./services/roles.service";
 import { ContentService } from "./services/content.service";
+import { InteractionService } from "./services/interaction.service";
 
 @Module({
     imports: [
@@ -27,18 +28,22 @@ import { ContentService } from "./services/content.service";
         LoggerModule
     ],
     providers: [
+        InteractionService,
         ChannelsService,
         MessagesService,
         ContentService,
         MembersService,
         RolesService,
+        BotGateway,
     ],
     exports: [
+        InteractionService,
         ChannelsService,
         MessagesService,
         ContentService,
         MembersService,
         RolesService,
+        BotGateway,
     ]
 })
 

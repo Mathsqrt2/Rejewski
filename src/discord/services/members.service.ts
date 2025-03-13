@@ -5,6 +5,7 @@ import { Logger } from '@libs/logger';
 import { Repository } from 'typeorm';
 import { SHA512 } from 'crypto-js'
 import { LogsTypes } from '@libs/enums';
+import { DiscordMember } from '@libs/types/discord';
 
 @Injectable()
 export class MembersService implements OnApplicationBootstrap {

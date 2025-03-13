@@ -25,6 +25,9 @@ export class Member {
     @Column({ type: `boolean`, default: false })
     isAdmin: boolean;
 
+    @Column({ type: `boolean`, default: false })
+    acceptedRules: boolean;
+
     @OneToOne(() => Email, email => email.assignedMember)
     @JoinColumn()
     assignedEmail: Email;

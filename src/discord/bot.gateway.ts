@@ -8,16 +8,15 @@ import { Injectable } from "@nestjs/common";
 import { LogsTypes } from "@libs/enums/logs.type.enum";
 import { Logger } from "@libs/logger";
 import {
-    ActivityType, Client, Events, GuildMember,
-    Message,
-    PartialGuildMember
+    ActivityType, ButtonInteraction, Client, Events, Message,
 } from "discord.js";
 import { RolesService } from "./services/roles.service";
-import { BotResponse, Roles } from "@libs/enums";
+import { AppEvents, BotResponse, Roles } from "@libs/enums";
 import { SHA512 } from 'crypto-js';
 import { DiscordMember } from "@libs/types/discord";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import { Content } from "src/app.content";
+import { DiscordEvents } from "@libs/enums/discord.events.enum";
 
 @Injectable()
 export class BotGateway {
@@ -78,8 +77,8 @@ export class BotGateway {
             return;
         }
 
-        if (member.isConfirmed) {
-            const isRoleAssigned = await this.rolesService.assignRoleToUser(discordMember, Roles.STUDENT);
+        if (member.isConfirmed && member.acceptedRules) {
+            const isRoleAssigned = await this.rolesService.assignRoleToUser(discordMember.id, Roles.STUDENT);
             isRoleAssigned
                 ? this.logger.log(`User role assigned successfully`, {
                     tag: LogsTypes.PERMISSIONS_GRANTED,
@@ -107,8 +106,9 @@ export class BotGateway {
         } else {
             await this.messagesService.sendMessage(channel.id, BotResponse.welcomeReturningMember);
         }
+
         await this.messagesService.sendMessage(channel.id, BotResponse.sendServerRules);
-        await this.messagesService.sendMessage(channel.id, BotResponse.askAboutEmail);
+        await this.messagesService.sendRulesButton(channel.id);
     }
 
     @On(Events.ChannelCreate)
@@ -162,7 +162,7 @@ export class BotGateway {
                 return;
             }
 
-            const evnetName = `${channelType.toUpperCase()}_MESSAGE`
+            const evnetName = `${channelType?.toUpperCase()}_MESSAGE`
             await this.eventEmitter.emitAsync(evnetName, message);
             this.logger.log(`Event ${evnetName} emitted successfully.`, {
                 tag: LogsTypes.EVENT_EMITTED,
@@ -178,5 +178,21 @@ export class BotGateway {
         }
     }
 
+    @On(Events.InteractionCreate)
+    async onButtonClick(interaction: ButtonInteraction): Promise<void> {
 
+        const startTime: number = Date.now();
+        if (!interaction.isButton()) {
+            return;
+        }
+
+        if (interaction.customId === DiscordEvents.acceptRules) {
+            try {
+                await this.eventEmitter.emitAsync(AppEvents.RulesAccept, interaction);
+            } catch (error) {
+                this.logger.error(`Failed to emit rules accept event.`, { error, startTime });
+            }
+            return;
+        }
+    }
 }

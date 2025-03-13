@@ -5,6 +5,7 @@ import { BotModule } from './discord/bot.module';
 import { ConfigModule } from '@nestjs/config';
 import { Module } from '@nestjs/common';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { TestModule } from './test/test.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
     DiscordModule.forRootAsync(BotIntents),
     ScheduleModule.forRoot(),
     BotModule,
+    TestModule,
   ]
 })
 

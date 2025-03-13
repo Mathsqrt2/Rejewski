@@ -13,7 +13,7 @@ import { Logger } from "@libs/logger";
 import { SHA512 } from "crypto-js";
 import { ContentService } from "./content.service";
 import { Content } from "src/app.content";
-import { MessageType } from "@libs/types/messages";
+import { BotResponse } from "@libs/enums/responses.enum";
 
 @Injectable()
 export class MessagesService {
@@ -28,7 +28,7 @@ export class MessagesService {
     ) { }
 
     @OnEvent(AppEvents.PublicMessage, { async: true })
-    public async handlePublicChannelMessage(message: Message): Promise<void> {
+    private async handlePublicChannelMessage(message: Message): Promise<void> {
 
         const doesMessageContainMaliciousLinkResult = this.contentService.detectMaliciousLinks(message);
         if (doesMessageContainMaliciousLinkResult) {
@@ -43,12 +43,12 @@ export class MessagesService {
     }
 
     @OnEvent(AppEvents.AdministrationMessage, { async: true })
-    public async handleAdministrationChannelMessage(message: Message): Promise<void> {
+    private async handleAdministrationChannelMessage(message: Message): Promise<void> {
 
     }
 
     @OnEvent(AppEvents.PrivateMessage, { async: true })
-    public async handlePrivateChannelMessage(message: Message): Promise<void> {
+    private async handlePrivateChannelMessage(message: Message): Promise<void> {
 
         const startTime = Date.now();
         try {
@@ -67,6 +67,8 @@ export class MessagesService {
                 return;
             }
 
+            message.content
+
         } catch (error) {
             this.logger.error(`Failed to handle private channel message.`, { error, startTime });
         }
@@ -74,7 +76,7 @@ export class MessagesService {
     }
 
     @OnEvent(AppEvents.PersonalMessage, { async: true })
-    public async handlePersonalChannelMessage(message: Message): Promise<void> {
+    private async handlePersonalChannelMessage(message: Message): Promise<void> {
 
 
     }
@@ -95,25 +97,24 @@ export class MessagesService {
         return channel;
     }
 
-    private findMessageContent = (type: MessageType, param?: unknown): string => {
+    private findMessageContent = (type: BotResponse, param?: unknown): string => {
         switch (type) {
-            case `welcomeNewMember`: return Content.messages.welcomeNewMember();
-            case `welcomeReturningMember`: return Content.messages.welcomeReturningMember();
-            case `askAboutEmail`: return Content.messages.askAboutEmail();
-            case `retryToAskAboutEmail`: return Content.messages.retryToAskAboutEmail();
-            case `respondToStrangeEmailFormat`: return Content.messages.respondToStrangeEmailFormat();
-            case `respondToWrongMessage`: return Content.messages.respondToWrongMessage();
-            case `askAboutCode`: return Content.messages.askAboutCode(param.toString());
-            case `informAboutWrongCode`: return Content.messages.informAboutWrongCode(param.toString());
-            case `retryToAskAboutCode`: return Content.messages.retryToAskAboutCode();
-            case `sendServerRules`: return Content.messages.sendServerRules();
+            case BotResponse.welcomeNewMember: return Content.messages.welcomeNewMember();
+            case BotResponse.welcomeReturningMember: return Content.messages.welcomeReturningMember();
+            case BotResponse.askAboutEmail: return Content.messages.askAboutEmail();
+            case BotResponse.retryToAskAboutEmail: return Content.messages.retryToAskAboutEmail();
+            case BotResponse.respondToStrangeEmailFormat: return Content.messages.respondToStrangeEmailFormat();
+            case BotResponse.respondToWrongMessage: return Content.messages.respondToWrongMessage();
+            case BotResponse.askAboutCode: return Content.messages.askAboutCode(param.toString());
+            case BotResponse.informAboutWrongCode: return Content.messages.informAboutWrongCode(param.toString());
+            case BotResponse.retryToAskAboutCode: return Content.messages.retryToAskAboutCode();
+            case BotResponse.sendServerRules: return Content.messages.sendServerRules();
         }
     }
 
-    public sendMessage = async (channelId: string, type: MessageType, param?: unknown): Promise<void> => {
+    public sendMessage = async (channelId: string, type: BotResponse, param?: unknown): Promise<void> => {
 
         const startTime: number = Date.now();
-
         try {
             const channel = this.getSendableChannel(channelId);
             const message: string = this.findMessageContent(type, param || null);

@@ -13,10 +13,11 @@ import {
     PartialGuildMember
 } from "discord.js";
 import { RolesService } from "./services/roles.service";
-import { Roles } from "@libs/enums";
+import { BotResponse, Roles } from "@libs/enums";
 import { SHA512 } from 'crypto-js';
 import { DiscordMember } from "@libs/types/discord";
 import { EventEmitter2 } from "@nestjs/event-emitter";
+import { Content } from "src/app.content";
 
 @Injectable()
 export class BotGateway {
@@ -102,12 +103,12 @@ export class BotGateway {
         }
 
         if (isMemberNew) {
-            await this.messagesService.sendMessage(channel.id, `welcomeNewMember`);
+            await this.messagesService.sendMessage(channel.id, BotResponse.welcomeNewMember);
         } else {
-            await this.messagesService.sendMessage(channel.id, `welcomeReturningMember`);
+            await this.messagesService.sendMessage(channel.id, BotResponse.welcomeReturningMember);
         }
-        await this.messagesService.sendMessage(channel.id, `sendServerRules`);
-        await this.messagesService.sendMessage(channel.id, `askAboutEmail`);
+        await this.messagesService.sendMessage(channel.id, BotResponse.sendServerRules);
+        await this.messagesService.sendMessage(channel.id, BotResponse.askAboutEmail);
     }
 
     @On(Events.ChannelCreate)

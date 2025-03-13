@@ -32,7 +32,13 @@ import { ContentService } from "./services/content.service";
         ContentService,
         MembersService,
         RolesService,
-        BotGateway,
+    ],
+    exports: [
+        ChannelsService,
+        MessagesService,
+        ContentService,
+        MembersService,
+        RolesService,
     ]
 })
 

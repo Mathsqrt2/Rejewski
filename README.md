@@ -14,11 +14,11 @@ A dedicated Discord bot for automating server management in the scientific commu
 
 ### Technologies Used
 
-- [**NestJS:**]() – A modular framework for building efficient, scalable [Node.js](http://nodejs.org/) applications  
+- [**NestJS:**](https://nestjs.com/) – A modular framework for building efficient, scalable [Node.js](http://nodejs.org/) applications  
 - [**TypeScript:**](https://www.typescriptlang.org/) – The main programming language for the bot  
 - [**DiscordJS:**](https://discord.js.org/) – A robust library for interfacing with the Discord API  
-- [**MySql:**](https://www.mysql.com/) A widely-used open-source relational database management system known for its reliability and scalability.
-- [**TypeOrm:**](https://typeorm.io/) An ORM for TypeScript and JavaScript that supports various databases, providing tools for object-relational mapping.
+- [**MySql:**](https://www.mysql.com/) - A widely-used open-source relational database management system known for its reliability and scalability.
+- [**TypeOrm:**](https://typeorm.io/) - An ORM for TypeScript and JavaScript that supports various databases, providing tools for object-relational mapping.
 - [**Docker**](https://www.docker.com/) – A containerization platform that simplifies deployment and environment consistency
 
 ---

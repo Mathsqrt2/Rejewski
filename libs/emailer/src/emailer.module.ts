@@ -3,6 +3,7 @@ import { MailerModule } from '@nestjs-modules/mailer';
 import { EmailerService } from './emailer.service';
 import { DatabaseModule } from '@libs/database';
 import { Module } from '@nestjs/common';
+import { LoggerModule } from '@libs/logger';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { Module } from '@nestjs/common';
     }),
     VerificationModule,
     DatabaseModule,
+    LoggerModule,
   ],
   providers: [EmailerService],
   exports: [EmailerService],

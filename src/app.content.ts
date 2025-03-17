@@ -2,6 +2,17 @@ import { ContentStorage } from "@libs/types/content";
 
 export class Content {
 
+    public static verificationEmail: ContentStorage = {
+        subject: () => `Twój kod weryfikacyjny w kole naukowym Cyber Security.`,
+        welcome: () => ``,
+        introduction: () => ``,
+        rulesHeading: () => `Reguły serwera`,
+        rules: () => `Pamiętaj, że na serwerze obowiązują pewne reguły, do któych wszyscy `,
+        code: (code: string) => `Twój kod weryfikacyjny to ${code}, podaj go Botowi Rejewskiemu aby uzyskać dostęp do serwera. Będzie on ważny przez następne 72 godziny.`,
+        warning: () => `Jeżeli to nie ty wysłałeś zapytanie weryfikacyjne podając ten adres email, po prostu zignorują tą wiadomość.`,
+
+    }
+
     public static messages: ContentStorage = {
         welcomeNewMember: () => `Witaj na serwerze Cyber Security, miło Cię tu widzieć`,
         welcomeReturningMember: () => `Witaj na serwerze Cyber Security, cieszymy się że do nas wracasz`,

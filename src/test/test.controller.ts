@@ -6,6 +6,7 @@ import { ChannelDto } from "./dtos/ChannelDto";
 import { BotResponse } from "@libs/enums";
 import { Logger } from "@libs/logger";
 import { Client } from "discord.js";
+import { EmailerService } from "@libs/emailer";
 
 @Controller(`api/test`)
 export class TestController {
@@ -13,6 +14,7 @@ export class TestController {
     constructor(
         @InjectDiscordClient() private readonly client: Client,
         private readonly messagesService: MessagesService,
+        private readonly emailer: EmailerService,
         private readonly logger: Logger,
     ) { }
 
@@ -74,5 +76,17 @@ export class TestController {
             this.logger.error(`Failed to force sending message with ${params}`, { error, startTime })
         }
 
+    }
+
+    @Get(`email`)
+    @HttpCode(HttpStatus.OK)
+    public async sendEmail() {
+        try {
+
+            await this.emailer.sendVerificationEmailTo(process.env.TEST_EMAIL, process.env.TEST_CODE);
+
+        } catch (error) {
+            this.logger.error(`Failed to send forced verification email.`, { error });
+        }
     }
 }

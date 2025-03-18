@@ -18,5 +18,8 @@ declare namespace NodeJS {
     SMTP_SECURE: boolean;
     SMTP_USER: string;
     SMTP_PASS: string;
+
+    TEST_EMAIL: string;
+    TEST_CODE: string;
   }
 }

@@ -1,10 +1,10 @@
-import { Logger } from '@libs/logger';
 import { VerificationService } from '@libs/verification';
 import { MailerService } from '@nestjs-modules/mailer';
-import { Injectable } from '@nestjs/common';
+import CodeTemplate from './templates/code.template';
 import { render } from '@react-email/components';
+import { Injectable } from '@nestjs/common';
 import { Content } from 'src/app.content';
-import codeTemplate from './templates/code.template';
+import { Logger } from '@libs/logger';
 
 @Injectable()
 export class EmailerService {
@@ -19,24 +19,33 @@ export class EmailerService {
 
         const subject: string = Content.verificationEmail.subject();
         try {
+
             const props = {
-                emailTitle: `Wiadomość weryfikacyjna`,
+                subject,
                 welcome: Content.verificationEmail.welcome(),
                 introduction: Content.verificationEmail.introduction(),
+                rulesHeading: Content.verificationEmail.rulesHeading(),
                 rules: Content.verificationEmail.rules(),
-                code: Content.verificationEmail.code(code),
+                yourCode: Content.verificationEmail.yourCode(),
+                code,
+                aboutCode: Content.verificationEmail.aboutCode(),
+                expiringDate: Content.verificationEmail.expiringDate(),
                 warning: Content.verificationEmail.warning(),
+                mediaHeading: Content.verificationEmail.mediaHeading(),
             }
+
+            const text: string = await render(CodeTemplate(props), { plainText: true });
+            const html: string = await render(CodeTemplate(props));
 
             await this.mailerService.sendMail({
                 to: email,
                 subject,
-                text: await render(codeTemplate, { plainText: true }),
-                html: await render(codeTemplate, { pretty: true }),
+                text,
+                html,
             });
 
         } catch (error) {
-            this.logger.error(`Failed to send email.`);
+            this.logger.error(`Failed to send email.`, { error });
         }
 
 

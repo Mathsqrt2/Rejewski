@@ -1,14 +1,16 @@
 import { DiscordModule } from "@discord-nestjs/core";
-import { Module } from "@nestjs/common";
 import { TestController } from "./test.controller";
 import { BotModule } from "src/discord/bot.module";
-import { LoggerModule } from "@libs/logger";
 import { DatabaseModule } from "@libs/database";
+import { EmailerModule } from "@libs/emailer";
+import { LoggerModule } from "@libs/logger";
+import { Module } from "@nestjs/common";
 
 @Module({
     imports: [
         DiscordModule.forFeature(),
         DatabaseModule,
+        EmailerModule,
         LoggerModule,
         BotModule,
     ],

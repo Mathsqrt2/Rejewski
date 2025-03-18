@@ -1,5 +1,8 @@
-import { Container, Text, Section, Head, Html, Tailwind, Hr, Img, Link } from "@react-email/components";
-import * as React from "react";
+import {
+    Container, Text, Section, Head,
+    Html, Tailwind, Hr, Link
+} from "@react-email/components";
+import * as React from "React";
 
 export type CodeMessageProps = {
     subject: string,
@@ -8,11 +11,11 @@ export type CodeMessageProps = {
     rulesHeading: string,
     rules: string,
     yourCode: string,
-    aboutCode: string,
-    codeHeading: string,
     code: string,
+    aboutCode: string,
     expiringDate: string,
     warning: string,
+    mediaHeading: string,
 }
 
 export default (props: CodeMessageProps) => {
@@ -77,7 +80,7 @@ export default (props: CodeMessageProps) => {
 
                     <Section className=" bg-mainfg rounded-lg border-solid border-t-[4px] border-accent">
                         <Text className="text-xl font-bold">
-                            {props.rulesHeading}
+                            {props.mediaHeading}
                         </Text>
 
                         <Section className="pb-5">

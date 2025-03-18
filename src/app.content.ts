@@ -8,10 +8,11 @@ export class Content {
         introduction: () => `O serwerze !!!!todo!!!!`,
         rulesHeading: () => `Reguły serwera`,
         rules: () => `Pamiętaj, że na serwerze obowiązują pewne reguły, do któych wszyscy `,
-        codeHeading: () => `Twój kod weryfikacyjny:`,
-        code: () => `Podaj go Botowi Rejewskiemu aby uzyskać dostęp do serwera.`,
+        yourCode: () => `Twój kod weryfikacyjny:`,
+        aboutCode: () => `Podaj go Botowi Rejewskiemu aby uzyskać dostęp do serwera.`,
         expiringDate: (endTime: string) => `Uwaga, kod będzie on ważny przez następne 72 godziny. Masz czas do ${endTime}.`,
         warning: () => `Jeżeli to nie ty wysłałeś zapytanie weryfikacyjne podając ten adres email, po prostu zignorują tą wiadomość.`,
+        mediaHeading: () => `Sprawdź nasze media społecznościowe:`,
     }
 
     public static messages: ContentStorage = {

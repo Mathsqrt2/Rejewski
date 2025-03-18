@@ -83,7 +83,7 @@ export class Logger {
         const error = config?.error ?? null;
         const content = message.toString().substring(0, this.textFieldMaxLength);
         const display = config?.display ?? true;
-        const displayError = config.displayError ?? true;
+        const displayError = config?.displayError ?? true;
 
         const errorMessage: string = config?.error
             ? typeof config.error === `string`

@@ -4,6 +4,8 @@ declare namespace NodeJS {
     DISCORD_TOKEN: string;
     GUILD_ID: string;
     NEW_USERS_PARENT: string;
+    ADMINISTRATION_PARENT: string;
+    PRIVATE_PARENT: string;
 
     DB_HOST: string;
     DB_PASS: string;

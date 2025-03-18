@@ -8,7 +8,7 @@ import { Repository } from 'typeorm';
 @Injectable()
 export class Logger {
 
-    private appName: string = __dirname.split("\\").pop();
+    private appName: string = `Rejewski`;
     private logger: NestLogger;
     private textFieldMaxLength = 65534;
 

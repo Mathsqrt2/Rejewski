@@ -32,18 +32,18 @@ export class ChannelsService implements OnApplicationBootstrap {
 
     public async onApplicationBootstrap() {
         this.channels = await this.channel.find();
+        await this.updateChannelsInfo();
     }
+
 
     public updateChannelsInfo = async (): Promise<boolean> => {
 
         const guild: Guild = this.client.guilds.cache.get(process.env.GUILD_ID);
-
         if (!guild) {
             throw new Error(`Failed to find specified guild.`);
         }
 
         const channels: Channel[] = await this.channel.find({ where: { isDeleted: false } });
-
         for (const channel of channels) {
             const discordChannel = guild.channels.cache.get(channel.discordId);
             if (!discordChannel) {
@@ -51,6 +51,17 @@ export class ChannelsService implements OnApplicationBootstrap {
                 this.channels.filter(c => c.discordId !== channel.discordId)
             }
         }
+
+        const allDiscordChannels = await guild.channels.fetch();
+        const newDiscordChannels = allDiscordChannels.filter(discordChannel => (
+            !this.channels.some(channel => discordChannel.id === channel.discordId)
+        ));
+
+        await Promise.all(newDiscordChannels.map(discordChannel => this.channel.save({
+            discordId: discordChannel.id,
+            isAdministration: discordChannel?.parentId === process.env.ADMINISTRATION_PARENT,
+            isPrivate: discordChannel?.parentId === process.env.PRIVATE_PARENT
+        })));
 
         return true;
     }

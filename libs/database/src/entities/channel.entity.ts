@@ -32,7 +32,7 @@ export class Channel {
     @CreateDateColumn({ type: `timestamp` })
     createdAt: Date;
 
-    @UpdateDateColumn({ type: `timestamp`, nullable: true })
+    @UpdateDateColumn({ type: `timestamp`, nullable: true, default: null })
     updatedAt?: Date;
 
 }

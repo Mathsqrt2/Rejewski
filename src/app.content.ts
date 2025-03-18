@@ -4,13 +4,14 @@ export class Content {
 
     public static verificationEmail: ContentStorage = {
         subject: () => `Twój kod weryfikacyjny w kole naukowym Cyber Security.`,
-        welcome: () => ``,
-        introduction: () => ``,
+        welcome: () => `Witaj na serwerze koła naukowego "Cyber Security" Politechniki Opolskiej`,
+        introduction: () => `O serwerze !!!!todo!!!!`,
         rulesHeading: () => `Reguły serwera`,
         rules: () => `Pamiętaj, że na serwerze obowiązują pewne reguły, do któych wszyscy `,
-        code: (code: string) => `Twój kod weryfikacyjny to ${code}, podaj go Botowi Rejewskiemu aby uzyskać dostęp do serwera. Będzie on ważny przez następne 72 godziny.`,
+        codeHeading: () => `Twój kod weryfikacyjny:`,
+        code: () => `Podaj go Botowi Rejewskiemu aby uzyskać dostęp do serwera.`,
+        expiringDate: (endTime: string) => `Uwaga, kod będzie on ważny przez następne 72 godziny. Masz czas do ${endTime}.`,
         warning: () => `Jeżeli to nie ty wysłałeś zapytanie weryfikacyjne podając ten adres email, po prostu zignorują tą wiadomość.`,
-
     }
 
     public static messages: ContentStorage = {

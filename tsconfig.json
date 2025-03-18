@@ -22,6 +22,7 @@
       "node",
       "jest",
       "discord.js",
+      "@react-email/components",
       "@discord-nestjs/core",
       "./.env.d.ts"
     ],

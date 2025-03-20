@@ -8,7 +8,6 @@ import { Repository } from 'typeorm';
 @Injectable()
 export class Logger {
 
-    private appName: string = `Rejewski`;
     private logger: NestLogger;
     private textFieldMaxLength = 65534;
 
@@ -16,7 +15,7 @@ export class Logger {
         @InjectRepository(Log) private readonly logs: Repository<Log>,
         private readonly settings: SettingsService,
     ) {
-        this.logger = new NestLogger(this.appName);
+        this.logger = new NestLogger(this.settings.app.name);
     }
 
     private shouldLog = (): boolean => this.settings.app.state.shouldLog;

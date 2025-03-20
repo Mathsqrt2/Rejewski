@@ -1,22 +1,9 @@
 import {
     Container, Text, Section, Head,
-    Html, Tailwind, Hr, Link
+    Html, Tailwind, Link, Body
 } from "@react-email/components";
 import * as React from "React";
-
-export type CodeMessageProps = {
-    subject: string,
-    welcome: string,
-    introduction: string,
-    rulesHeading: string,
-    rules: string,
-    yourCode: string,
-    code: string,
-    aboutCode: string,
-    expiringDate: string,
-    warning: string,
-    mediaHeading: string,
-}
+import { CodeMessageProps } from "../emailer.types";
 
 export default (props: CodeMessageProps) => {
     return (
@@ -29,80 +16,75 @@ export default (props: CodeMessageProps) => {
             <Tailwind config={{
                 theme: {
                     extend: {
-                        colors: { mainbg: "#eee", mainfg: "#fff", accent: "#5c5" },
+                        colors: { mainbg: "#eee", mainfg: "#fff", accent: "#5c5", text: "#000" },
                         fontFamily: { montserrat: [`montserrat`, `sans-serif`] }
                     }
                 }
             }
             }>
-                <Container className="max-w-[600px] p-5 bg-mainbg font-montserrat text-center">
+                <Body className="bg-mainbg text-white">
+                    <Container className="max-w-[600px] p-5 bg-mainbg font-montserrat text-center">
 
-                    <Section className="pb-3 bg-mainfg rounded-lg mb-5 border-solid border-t-[4px] border-accent">
-                        <Text className="text-xl font-bold">
-                            {props.welcome}
-                        </Text>
-                        <Text >
-                            {props.introduction}
-                        </Text>
-                    </Section>
-
-                    <Section className="pb-3 bg-mainfg rounded-lg mb-5">
-                        <Text className="text-xl font-bold">
-                            {props.rulesHeading}
-                        </Text>
-                        <Text>
-                            {props.rules}
-                        </Text>
-                    </Section>
-
-                    <Hr />
-
-                    <Section className="px-8 py-4 bg-mainfg rounded-lg mb-5 text-center border-solid border-t-[4px] border-accent">
-                        <Text className="text-lg pb-2 font-bold">
-                            {props.yourCode}
-                        </Text>
-                        <Text className="bg-mainbg p-8 text-2xl tracking-[10px] rounded-lg">
-                            {props.code}
-                        </Text>
-                        <Text>
-                            {props.aboutCode}
-                        </Text>
-                        <Text>{props.expiringDate}</Text>
-                    </Section>
-
-                    <Hr />
-
-                    <Section className="px-8 py-4 bg-mainfg rounded-lg mb-5">
-                        <Text>{props.warning}</Text>
-                    </Section>
-
-                    <Hr />
-
-                    <Section className=" bg-mainfg rounded-lg border-solid border-t-[4px] border-accent">
-                        <Text className="text-xl font-bold">
-                            {props.mediaHeading}
-                        </Text>
-
-                        <Section className="pb-5">
-                            <Link href="#" className="p-3">
-                                Discord
-                            </Link>
-                            <Link href="#" className="p-3">
-                                Instagram
-                            </Link>
-                            <Link href="#" className="p-3">
-                                Facebook
-                            </Link>
-                            <Link href="https://cyber-sec.cc/" className="p-3">
-                                Strona
-                            </Link>
-
+                        <Section className="px-8 py-4 bg-mainfg rounded-lg mb-5 border-solid border-t-[6px] border-accent">
+                            <Text className="text-xl font-bold">
+                                {props.welcome}
+                            </Text>
+                            <Text >
+                                {props.introduction}
+                            </Text>
                         </Section>
-                    </Section>
 
-                </Container>
+                        <Section className="px-8 py-4 bg-mainfg rounded-lg mb-5">
+                            <Text className="text-xl font-bold">
+                                {props.rulesHeading}
+                            </Text>
+                            <Text>
+                                {props.rules}
+                            </Text>
+                        </Section>
+
+                        <Section className="px-8 py-4 bg-mainfg rounded-lg mb-5 text-center border-solid border-t-[6px] border-accent">
+                            <Text className="text-lg pb-2 font-bold">
+                                {props.yourCode}
+                            </Text>
+                            <Text className="bg-mainbg p-8 text-2xl tracking-[10px] rounded-lg">
+                                {props.code}
+                            </Text>
+                            <Text>
+                                {props.aboutCode}
+                            </Text>
+                            <Text>{props.expiringDate}</Text>
+                        </Section>
+
+                        <Section className="px-8 py-4 bg-mainfg rounded-lg mb-5">
+                            <Text>{props.warning}</Text>
+                        </Section>
+
+                        <Section className="px-4 py-2 bg-mainfg rounded-lg border-solid border-t-[6px] border-accent">
+                            <Text className="text-xl font-bold">
+                                {props.mediaHeading}
+                            </Text>
+
+                            <Section className="pb-5">
+                                <Link href={props.discordLink} className="p-3">
+                                    Discord
+                                </Link>
+                                <Link href={props.instagramLink} className="p-3">
+                                    Instagram
+                                </Link>
+                                <Link href={props.facebookLink} className="p-3">
+                                    Facebook
+                                </Link>
+                                <Link href={props.websiteLink} className="p-3">
+                                    Strona
+                                </Link>
+
+                            </Section>
+                        </Section>
+
+                    </Container>
+                </Body>
             </Tailwind>
-
         </Html >
     );
 }

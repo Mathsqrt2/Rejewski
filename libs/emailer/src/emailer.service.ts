@@ -32,6 +32,10 @@ export class EmailerService {
                 expiringDate: Content.verificationEmail.expiringDate(),
                 warning: Content.verificationEmail.warning(),
                 mediaHeading: Content.verificationEmail.mediaHeading(),
+                facebookLink: Content.verificationEmail.facebookLink(),
+                instagramLink: Content.verificationEmail.instagramLink(),
+                discordLink: Content.verificationEmail.discordLink(),
+                websiteLink: Content.verificationEmail.websiteLink(),
             }
 
             const text: string = await render(CodeTemplate(props), { plainText: true });

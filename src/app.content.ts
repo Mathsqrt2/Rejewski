@@ -12,7 +12,11 @@ export class Content {
         aboutCode: () => `Podaj go Botowi Rejewskiemu aby uzyskać dostęp do serwera.`,
         expiringDate: (endTime: string) => `Uwaga, kod będzie on ważny przez następne 72 godziny. Masz czas do ${endTime}.`,
         warning: () => `Jeżeli to nie ty wysłałeś zapytanie weryfikacyjne podając ten adres email, po prostu zignorują tą wiadomość.`,
-        mediaHeading: () => `Sprawdź nasze media społecznościowe:`,
+        mediaHeading: () => `Sprawdź nasze media:`,
+        facebookLink: () => `#`,
+        instagramLink: () => `#`,
+        discordLink: () => `#`,
+        websiteLink: () => `https://cyber-sec.cc/`,
     }
 
     public static messages: ContentStorage = {

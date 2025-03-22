@@ -19,7 +19,7 @@ import { Repository } from "typeorm";
 import { SHA512 } from "crypto-js";
 import { DiscordEvents } from "@libs/enums/discord.events.enum";
 import { RolesService } from "./roles.service";
-import { Roles } from "@libs/enums";
+import { LogsTypes, Roles } from "@libs/enums";
 
 @Injectable()
 export class MessagesService {
@@ -64,8 +64,15 @@ export class MessagesService {
                 where: { discordId: message.channelId },
                 relations: ['assignedMember']
             });
+
             if (!channel) {
                 this.logger.error(`Invalid channel.`, { startTime });
+                return;
+            }
+
+            if (!channel.assignedMember) {
+                this.logger.warn(`Action suspended, private channel has no assigned members.`, { startTime });
+                return;
             }
 
             const discordMemberIdHash = SHA512(message.author.id).toString();
@@ -74,7 +81,27 @@ export class MessagesService {
                 return;
             }
 
-            message.content
+            if (!channel.assignedMember.acceptedRules) {
+                message.reply({ content: `Aby odblokować zawartość serwera, musisz najpierw zaakceptować regulamin.` });
+                return;
+            }
+
+            if (channel.assignedMember.isConfirmed) {
+                const isRoleAssigned = await this.rolesService.assignRoleToUser(message.author.id, Roles.STUDENT);
+                isRoleAssigned
+                    ? this.logger.log(`User role assigned successfully`, {
+                        tag: LogsTypes.PERMISSIONS_GRANTED,
+                        startTime
+                    })
+                    : this.logger.error(`Failed to assign role.`, {
+                        tag: LogsTypes.PERMISSIONS_FAIL,
+                        startTime
+                    });
+                return;
+            }
+
+            this.logger.log(`works`);
+
 
         } catch (error) {
             this.logger.error(`Failed to handle private channel message.`, { error, startTime });

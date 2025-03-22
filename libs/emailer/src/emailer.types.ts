@@ -2,8 +2,6 @@ export type CodeMessageProps = {
     subject: string,
     welcome: string,
     introduction: string,
-    rulesHeading: string,
-    rules: string,
     yourCode: string,
     code: string,
     aboutCode: string,

@@ -20,9 +20,8 @@ export default (props: CodeMessageProps) => {
                         fontFamily: { montserrat: [`montserrat`, `sans-serif`] }
                     }
                 }
-            }
-            }>
-                <Body className="bg-mainbg text-white">
+            }}>
+                <Body className="bg-mainbg text-black">
                     <Container className="max-w-[600px] p-5 bg-mainbg font-montserrat text-center">
 
                         <Section className="px-8 py-4 bg-mainfg rounded-lg mb-5 border-solid border-t-[6px] border-accent">
@@ -31,15 +30,6 @@ export default (props: CodeMessageProps) => {
                             </Text>
                             <Text >
                                 {props.introduction}
-                            </Text>
-                        </Section>
-
-                        <Section className="px-8 py-4 bg-mainfg rounded-lg mb-5">
-                            <Text className="text-xl font-bold">
-                                {props.rulesHeading}
-                            </Text>
-                            <Text>
-                                {props.rules}
                             </Text>
                         </Section>
 

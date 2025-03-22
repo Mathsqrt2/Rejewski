@@ -97,10 +97,10 @@ export class ChannelsService implements OnApplicationBootstrap {
         }
     }
 
-    public discoverChannelForUser = async (discordId: string): Promise<TextChannel> => {
+    public discoverChannelForUser = async (discordMemberId: string): Promise<TextChannel> => {
 
         const guild: Guild = this.client.guilds.cache.get(process.env.GUILD_ID);
-        const discordIdHash = SHA512(discordId).toString();
+        const discordIdHash = SHA512(discordMemberId).toString();
         const startTime = Date.now();
 
         try {
@@ -129,7 +129,7 @@ export class ChannelsService implements OnApplicationBootstrap {
                 return;
             }
 
-            await discordChannel.permissionOverwrites.edit(discordId, {
+            await discordChannel.permissionOverwrites.edit(discordMemberId, {
                 ReadMessageHistory: true,
                 SendMessages: true,
                 AddReactions: true,
@@ -266,6 +266,25 @@ export class ChannelsService implements OnApplicationBootstrap {
                 startTime,
             });
             return null;
+        }
+    }
+
+    public removeDiscordChannel = async (discordChannelId: string, reason?: string): Promise<void> => {
+
+        const startTime = Date.now();
+        try {
+
+            const guild: Guild = this.client.guilds.cache.get(process.env.GUILD_ID);
+
+            const discordChannel = guild.channels.cache.get(discordChannelId) as TextChannel;
+            const channel = await this.channel.findOne({ where: { discordId: discordChannelId } });
+
+            await discordChannel.delete(reason || null);
+            this.channel.save({ ...channel, isDeleted: true });
+
+            this.logger.log(`Channel removed successfully,`, { startTime });
+        } catch (error) {
+            this.logger.error(`Failed to remove discord channel.`, { startTime });
         }
     }
 

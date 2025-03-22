@@ -27,7 +27,10 @@ export class MembersService implements OnApplicationBootstrap {
 
         try {
             const discordIdHash = SHA512(memberDiscordId).toString();
-            let member: Member = await this.member.findOne({ where: { discordIdHash } });
+            let member: Member = await this.member.findOne({
+                where: { discordIdHash },
+                relations: [`channels`],
+            });
 
             if (!member) {
 

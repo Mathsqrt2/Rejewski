@@ -78,16 +78,26 @@ export class BotGateway {
         }
 
         if (member.isConfirmed && member.acceptedRules) {
+
             const isRoleAssigned = await this.rolesService.assignRoleToUser(discordMember.id, Roles.STUDENT);
-            isRoleAssigned
-                ? this.logger.log(`User role assigned successfully`, {
+            const channelId = member.channels.filter(channel => channel.isPrivate).at(0);
+
+            if (isRoleAssigned) {
+
+                this.channelsService.removeDiscordChannel(channelId.discordId);
+                this.logger.log(`User role assigned successfully`, {
                     tag: LogsTypes.PERMISSIONS_GRANTED,
                     startTime
-                })
-                : this.logger.error(`Failed to assign role.`, {
+                });
+
+            } else {
+
+                this.logger.error(`Failed to assign role.`, {
                     tag: LogsTypes.PERMISSIONS_FAIL,
                     startTime
                 });
+
+            }
             return;
         }
 
@@ -135,7 +145,7 @@ export class BotGateway {
 
         const discordIdHash = SHA512(message.author.id).toString();
         if (!message?.channel) {
-            this.logger.error(`Invalid message metadata for ${discordIdHash}.`, {
+            this.logger.error(`Invalid message metadata for ${discordIdHash} message.`, {
                 tag: LogsTypes.INVALID_PAYLOAD,
                 startTime
             });

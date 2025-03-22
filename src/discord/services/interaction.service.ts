@@ -32,9 +32,20 @@ export class InteractionService {
         try {
 
             const discordIdHash = SHA512(interaction.user.id).toString();
-            const member = await this.member.findOne({ where: { discordIdHash } });
+            const member = await this.member.findOne({
+                where: { discordIdHash },
+                relations: [`channels`],
+            });
+
             if (!member) {
                 this.logger.warn(`Member doesn't exist`);
+                await interaction.deferUpdate();
+                return;
+            }
+
+            if (!member.channels.some(channel => channel.discordId === interaction.channelId)) {
+                this.logger.warn(`Action suspended. Interaction member is not channel owner.`)
+                await interaction.deferUpdate();
                 return;
             }
 
@@ -67,7 +78,10 @@ export class InteractionService {
             await this.messagesService.sendMessage(interaction.channelId, BotResponse.askAboutEmail);
 
         } catch (error) {
+
             this.logger.error(`Failed to handle interaction.`, { startTime, error });
+            await interaction.deferUpdate();
+
         }
 
     }

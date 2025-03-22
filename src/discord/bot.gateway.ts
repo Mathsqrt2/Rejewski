@@ -117,8 +117,15 @@ export class BotGateway {
             await this.messagesService.sendMessage(channel.id, BotResponse.welcomeReturningMember);
         }
 
-        await this.messagesService.sendMessage(channel.id, BotResponse.sendServerRules);
-        await this.messagesService.sendRulesButton(channel.id);
+        if (!member.acceptedRules) {
+            await this.messagesService.sendMessage(channel.id, BotResponse.sendServerRules);
+            await this.messagesService.sendRulesButton(channel.id);
+        } else {
+            await this.messagesService.sendMessage(channel.id, BotResponse.askAboutEmail);
+        }
+
+
+
     }
 
     @On(Events.ChannelCreate)
@@ -154,8 +161,8 @@ export class BotGateway {
 
         try {
 
-            const channel = await this.channelsService.findChannelById(message?.channel.id);
-            if (!channel) {
+            const discordChannel = await this.channelsService.findDiscordChannelById(message?.channelId);
+            if (!discordChannel) {
                 this.logger.warn(`Failed to handle message. Unknown channel.`, {
                     tag: LogsTypes.UNKNOWN_CHANNEL,
                     startTime
@@ -163,7 +170,7 @@ export class BotGateway {
                 return;
             }
 
-            const channelType = await this.channelsService.findChannelType(message.channel.id);
+            const channelType = await this.channelsService.findChannelType(message.channelId);
             if (!channelType) {
                 this.logger.warn(`Failed to handle message. Unknown channel type.`, {
                     tag: LogsTypes.UNKNOWN_CHANNEL,

@@ -100,7 +100,7 @@ export class MessagesService {
                 return;
             }
 
-            this.logger.log(`works`);
+
 
 
         } catch (error) {

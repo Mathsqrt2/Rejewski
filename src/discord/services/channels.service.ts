@@ -43,24 +43,25 @@ export class ChannelsService implements OnApplicationBootstrap {
             throw new Error(`Failed to find specified guild.`);
         }
 
+        const discordChannels = await guild.channels.fetch();
         const channels: Channel[] = await this.channel.find({ where: { isDeleted: false } });
         for (const channel of channels) {
-            const discordChannel = guild.channels.cache.get(channel.discordId);
-            if (!discordChannel) {
+            if (!discordChannels.some(discordChannel => discordChannel.id === channel.discordId)) {
                 this.channel.save({ ...channel, isDeleted: true });
                 this.channels.filter(c => c.discordId !== channel.discordId)
             }
         }
 
-        const allDiscordChannels = await guild.channels.fetch();
-        const newDiscordChannels = allDiscordChannels.filter(discordChannel => (
+        const newDiscordChannels = discordChannels.filter(discordChannel => (
             !this.channels.some(channel => discordChannel.id === channel.discordId)
         ));
 
         await Promise.all(newDiscordChannels.map(discordChannel => this.channel.save({
             discordId: discordChannel.id,
             isAdministration: discordChannel?.parentId === process.env.ADMINISTRATION_PARENT,
-            isPrivate: discordChannel?.parentId === process.env.PRIVATE_PARENT
+            isPrivate:
+                discordChannel?.parentId === process.env.PRIVATE_PARENT ||
+                discordChannel.parentId === process.env.NEW_USERS_PARENT
         })));
 
         return true;
@@ -118,7 +119,7 @@ export class ChannelsService implements OnApplicationBootstrap {
                 where: { memberId: member.id, isDeleted: false }
             });
 
-            const discordChannel = guild.channels.cache.get(channel.discordId) as TextChannel;
+            const discordChannel = await guild.channels.fetch(channel.discordId) as TextChannel;
             if (!discordChannel) {
                 this.channel.save({ ...channel, isDeleted: true });
                 this.channels = this.channels.filter(channel => channel.discordId !== discordChannel.id);
@@ -218,14 +219,14 @@ export class ChannelsService implements OnApplicationBootstrap {
         }
     }
 
-    public findChannelById = async (discordChannelId: string): Promise<DiscordChannel> => {
+    public findDiscordChannelById = async (discordChannelId: string): Promise<DiscordChannel> => {
 
         const guild: Guild = this.client.guilds.cache.get(process.env.GUILD_ID);
         if (!guild) {
             throw new Error(`Failed to find guild ${guild.id}.`);
         }
 
-        const channel: GuildBasedChannel = guild.channels.cache.get(discordChannelId);
+        const channel: GuildBasedChannel = await guild.channels.fetch(discordChannelId);
         if (!channel || (!channel.isTextBased() && !channel.isVoiceBased())) {
             throw new Error(`Failed to find correct channel.`);
         }
@@ -276,7 +277,7 @@ export class ChannelsService implements OnApplicationBootstrap {
 
             const guild: Guild = this.client.guilds.cache.get(process.env.GUILD_ID);
 
-            const discordChannel = guild.channels.cache.get(discordChannelId) as TextChannel;
+            const discordChannel = await guild.channels.fetch(discordChannelId) as TextChannel;
             const channel = await this.channel.findOne({ where: { discordId: discordChannelId } });
 
             await discordChannel.delete(reason || null);

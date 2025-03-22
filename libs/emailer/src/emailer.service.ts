@@ -20,6 +20,9 @@ export class EmailerService {
         const subject: string = Content.verificationEmail.subject();
         try {
 
+            const threeDaysFromNow = new Date();
+            threeDaysFromNow.setDate(threeDaysFromNow.getDate() + 3);
+
             const props = {
                 subject,
                 welcome: Content.verificationEmail.welcome(),
@@ -29,7 +32,7 @@ export class EmailerService {
                 yourCode: Content.verificationEmail.yourCode(),
                 code,
                 aboutCode: Content.verificationEmail.aboutCode(),
-                expiringDate: Content.verificationEmail.expiringDate(),
+                expiringDate: Content.verificationEmail.expiringDate(threeDaysFromNow.toLocaleString(`pl-PL`)),
                 warning: Content.verificationEmail.warning(),
                 mediaHeading: Content.verificationEmail.mediaHeading(),
                 facebookLink: Content.verificationEmail.facebookLink(),

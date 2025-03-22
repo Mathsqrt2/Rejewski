@@ -5,6 +5,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Message } from "discord.js";
 import { Repository } from "typeorm";
 import { SHA512 } from "crypto-js";
+import { WrongCode } from "@libs/enums/wrongCode.enum";
 
 @Injectable()
 export class ContentService implements OnApplicationBootstrap {
@@ -15,7 +16,7 @@ export class ContentService implements OnApplicationBootstrap {
     ) { }
 
     public async onApplicationBootstrap() {
-        this.emails = await this.email.find();
+        this.emails = await this.email.find({ relations: [`codes`] });
     }
 
     public detectEmail = (message: string): [string, WrongEmail] => {
@@ -47,7 +48,10 @@ export class ContentService implements OnApplicationBootstrap {
         }
 
         const emailHash: string = SHA512(email).toString();
-        if (this.emails.some(usedEmail => usedEmail.emailHash === emailHash)) {
+        if (this.emails.some(usedEmail => (
+            usedEmail.emailHash === emailHash &&
+            usedEmail.isConfirmed
+        ))) {
             return [null, WrongEmail.emailInUse];
         }
 
@@ -56,6 +60,12 @@ export class ContentService implements OnApplicationBootstrap {
         }
 
         return [email, null];
+    }
+
+    public detectCode = async (message: Message): Promise<[string, WrongCode]> => {
+
+        //todo
+        return [message.content, null];
     }
 
     public detectMaliciousLinks = async (message: Message): Promise<boolean> => {

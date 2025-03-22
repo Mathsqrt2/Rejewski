@@ -1,6 +1,8 @@
 import {
     Container, Text, Section, Head,
-    Html, Tailwind, Link, Body
+    Html, Tailwind, Link, Body,
+    Row,
+    Column
 } from "@react-email/components";
 import * as React from "React";
 import { CodeMessageProps } from "../emailer.types";
@@ -50,28 +52,33 @@ export default (props: CodeMessageProps) => {
                             <Text>{props.warning}</Text>
                         </Section>
 
-                        <Section className="px-4 py-2 bg-mainfg rounded-lg border-solid border-t-[6px] border-accent">
+                        <Section className="px-6 py-4 bg-mainfg rounded-lg border-solid border-t-[6px] border-accent">
                             <Text className="text-xl font-bold">
                                 {props.mediaHeading}
                             </Text>
-
-                            <Section className="pb-5">
-                                <Link href={props.discordLink} className="p-3">
-                                    Discord
-                                </Link>
-                                <Link href={props.instagramLink} className="p-3">
-                                    Instagram
-                                </Link>
-                                <Link href={props.facebookLink} className="p-3">
-                                    Facebook
-                                </Link>
-                                <Link href={props.websiteLink} className="p-3">
-                                    Strona
-                                </Link>
-
-                            </Section>
+                            <Row>
+                                <Column className="p-3 w-1/4">
+                                    <Link href={props.discordLink}>
+                                        Discord
+                                    </Link>
+                                </Column>
+                                <Column className="p-3 w-1/4">
+                                    <Link href={props.instagramLink} >
+                                        Instagram
+                                    </Link>
+                                </Column>
+                                <Column className="p-3 w-1/4">
+                                    <Link href={props.facebookLink}>
+                                        Facebook
+                                    </Link>
+                                </Column>
+                                <Column className="p-3 w-1/4">
+                                    <Link href={props.websiteLink}>
+                                        Strona
+                                    </Link>
+                                </Column>
+                            </Row>
                         </Section>
-
                     </Container>
                 </Body>
             </Tailwind>

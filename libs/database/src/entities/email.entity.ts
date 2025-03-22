@@ -18,6 +18,9 @@ export class Email {
     @Column({ type: `int`, nullable: true })
     memberId?: number;
 
+    @Column({ type: `boolean`, default: false })
+    isConfirmed?: boolean;
+
     @OneToOne(() => Member, member => member.assignedEmail, { nullable: true, onDelete: `CASCADE` })
     @JoinColumn({ name: `memberId` })
     assignedMember: Member;

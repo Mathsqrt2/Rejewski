@@ -4,6 +4,6 @@ import { Injectable } from '@nestjs/common';
 export class VerificationService {
 
     public generateCode = (): string => {
-        return '';
+        return '692 137 420';
     }
 }

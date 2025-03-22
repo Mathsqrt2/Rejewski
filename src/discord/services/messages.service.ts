@@ -15,7 +15,7 @@ import { OnEvent } from "@nestjs/event-emitter";
 import { Injectable } from "@nestjs/common";
 import { Content } from "src/app.content";
 import { Logger } from "@libs/logger";
-import { Repository } from "typeorm";
+import { MoreThanOrEqual, Repository } from "typeorm";
 import { SHA512 } from "crypto-js";
 import { DiscordEvents } from "@libs/enums/discord.events.enum";
 import { RolesService } from "./roles.service";
@@ -24,12 +24,16 @@ import { Email } from "@libs/database/entities/email.entity";
 import { WrongEmail } from "@libs/enums/wrongEmail.enum";
 import { VerificationService } from "@libs/verification";
 import { Code } from "@libs/database/entities/code.entity";
+import { EmailerService } from "@libs/emailer";
+import { WrongCode } from "@libs/enums/wrongCode.enum";
+import { Request } from "@libs/database/entities/request.entity";
 
 @Injectable()
 export class MessagesService {
 
     constructor(
         @InjectRepository(Channel) private readonly channel: Repository<Channel>,
+        @InjectRepository(Request) private readonly request: Repository<Request>,
         @InjectRepository(Member) private readonly member: Repository<Member>,
         @InjectRepository(Email) private readonly email: Repository<Email>,
         @InjectRepository(Code) private readonly code: Repository<Code>,
@@ -38,6 +42,7 @@ export class MessagesService {
         private readonly channelsService: ChannelsService,
         private readonly contentService: ContentService,
         private readonly rolesService: RolesService,
+        private readonly emailer: EmailerService,
         private readonly logger: Logger,
     ) { }
 
@@ -82,6 +87,27 @@ export class MessagesService {
                 return;
             }
 
+            const maxAttemptsNumberPerHous: number = 3;
+            const oneDayAgo = new Date();
+            oneDayAgo.setDate(oneDayAgo.getDate() - 1);
+
+            const [requests, requestsCountFromLastHour] = await this.request.findAndCount({
+                where: {
+                    memberId: channel.assignedMember.id,
+                    createdAt: MoreThanOrEqual(oneDayAgo),
+                },
+                order: { id: `DESC` },
+                take: maxAttemptsNumberPerHous,
+            });
+            this.logger.debug(requestsCountFromLastHour)
+            if (requestsCountFromLastHour > maxAttemptsNumberPerHous) {
+                const latestAttempt = requests.at(-1);
+                const unlockTime: Date = new Date(latestAttempt.createdAt.setDate(latestAttempt.createdAt.getDate() + 1));
+
+                message.reply({ content: `Spróbowałeś podać kod zbyt wiele razy. Możesz spróbować ponownie po ${unlockTime.toLocaleString(`pl-PL`)}` });
+                return
+            }
+
             const discordMemberIdHash = SHA512(message.author.id).toString();
             if (channel.assignedMember.discordIdHash !== discordMemberIdHash) {
                 this.logger.warn(`Action suspended. Someone else is using client channel.`, { startTime });
@@ -112,7 +138,10 @@ export class MessagesService {
                 order: { id: `DESC` },
             });
 
-            if (!requestedEmail) {
+            const threeDaysAgo: Date = new Date();
+            threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+
+            if (!requestedEmail || requestedEmail.createdAt < threeDaysAgo) {
 
                 const [messageEmail, error]: [string, WrongEmail] = this.contentService.detectEmail(message.content);
                 if (error) {
@@ -140,20 +169,52 @@ export class MessagesService {
                     code,
                 })
 
+                this.emailer.sendVerificationEmailTo(messageEmail, code);
+
                 message.reply({ content: `Właśnie wysłałem wiadomość z kodem na Twój email: "${messageEmail}", podaj mi go aby uzyskać dostęp do serwera.` });
                 return;
             }
 
-            const threeDaysAgo: Date = new Date();
-            threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+            const [messageCode, error]: [string, WrongCode] = await this.contentService.detectCode(message);
 
-            if (requestedEmail.createdAt < threeDaysAgo) {
+            await this.request.save({
+                memberId: channel.assignedMember.id,
+                emailId: requestedEmail.id,
+                code: messageCode || error
+            })
 
+            if (error) {
+                let content: string = null;
+                switch (error) {
+                    case WrongCode.emailInsteadCode: `emailInsteadCode`; break;
+                    case WrongCode.incorrectCode: `incorrectCode`; break;
+                    case WrongCode.missingCode: `missingCode`; break;
+                    case WrongCode.wrongCodeFormat: `wrongCodeFormat`; break;
+                }
+                message.reply({ content });
+                return;
             }
 
+            const member: Member = await this.member.findOne({
+                where: { id: channel.assignedMember.id },
+                relations: [`codes`]
+            })
 
+            const code = member.codes.filter(code => code.createdAt < threeDaysAgo);
+            if (!code.length) {
+                message.reply({ content: `ostatni kod już wygasł, podaj ponownie maila, a wyślę Ci nowy` });
+                return;
+            }
 
+            const lastCode: Code = code.at(0);
+            if (lastCode.code === messageCode) {
 
+                await this.rolesService.assignRoleToUser(message.author.id, Roles.STUDENT);
+                await this.channelsService.removeDiscordChannel(message.channelId);
+
+            } else {
+                message.reply({ content: `Podany kod jest nieprawidłowy, spróbuj ponownie:` })
+            }
 
         } catch (error) {
             this.logger.error(`Failed to handle private channel message.`, { error, startTime });

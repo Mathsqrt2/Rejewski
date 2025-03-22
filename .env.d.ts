@@ -6,6 +6,8 @@ declare namespace NodeJS {
     NEW_MEMBERS_PARENT: string;
     ADMINISTRATION_PARENT: string;
     PRIVATE_PARENT: string;
+    VERIFIED_ROLE_ID: string;
+    CLUB_MEMBER_ID: string;
 
     DB_HOST: string;
     DB_PASS: string;

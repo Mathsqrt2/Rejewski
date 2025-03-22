@@ -44,7 +44,6 @@ export class MembersService implements OnApplicationBootstrap {
                 role.permissions.has(PermissionsBitField.Flags.Administrator)
             ));
             const isConfirmed: boolean = isAdmin;
-
             return this.member.save({ discordIdHash, isAdmin, isConfirmed });
         }));
 

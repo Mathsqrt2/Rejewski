@@ -1,9 +1,9 @@
 import {
-    ActionRowBuilder, ButtonBuilder, ButtonComponent,
-    ButtonInteraction, ButtonStyle, Client, Events, Message,
+    ActionRowBuilder, ButtonBuilder,
+    ButtonInteraction, ButtonStyle, Client, Message,
     SendableChannels
 } from "discord.js";
-import { InjectDiscordClient, On } from "@discord-nestjs/core";
+import { InjectDiscordClient } from "@discord-nestjs/core";
 import { Channel } from "@libs/database/entities/channel.entity";
 import { Member } from "@libs/database/entities/member.entity";
 import { BotResponse } from "@libs/enums/responses.enum";
@@ -20,6 +20,10 @@ import { SHA512 } from "crypto-js";
 import { DiscordEvents } from "@libs/enums/discord.events.enum";
 import { RolesService } from "./roles.service";
 import { LogsTypes, Roles } from "@libs/enums";
+import { Email } from "@libs/database/entities/email.entity";
+import { WrongEmail } from "@libs/enums/wrongEmail.enum";
+import { VerificationService } from "@libs/verification";
+import { Code } from "@libs/database/entities/code.entity";
 
 @Injectable()
 export class MessagesService {
@@ -27,7 +31,10 @@ export class MessagesService {
     constructor(
         @InjectRepository(Channel) private readonly channel: Repository<Channel>,
         @InjectRepository(Member) private readonly member: Repository<Member>,
+        @InjectRepository(Email) private readonly email: Repository<Email>,
+        @InjectRepository(Code) private readonly code: Repository<Code>,
         @InjectDiscordClient() private readonly client: Client,
+        private readonly verification: VerificationService,
         private readonly channelsService: ChannelsService,
         private readonly contentService: ContentService,
         private readonly rolesService: RolesService,
@@ -77,7 +84,7 @@ export class MessagesService {
 
             const discordMemberIdHash = SHA512(message.author.id).toString();
             if (channel.assignedMember.discordIdHash !== discordMemberIdHash) {
-                this.logger.warn(`Someone else is using client channel. Action suspended.`, { startTime });
+                this.logger.warn(`Action suspended. Someone else is using client channel.`, { startTime });
                 return;
             }
 
@@ -99,6 +106,51 @@ export class MessagesService {
                     });
                 return;
             }
+
+            const requestedEmail = await this.email.findOne({
+                where: { memberId: channel.assignedMember.id },
+                order: { id: `DESC` },
+            });
+
+            if (!requestedEmail) {
+
+                const [messageEmail, error]: [string, WrongEmail] = this.contentService.detectEmail(message.content);
+                if (error) {
+                    let content: string = null;
+                    switch (error) {
+                        case WrongEmail.emailInUse: content = `emailInUse`; break;
+                        case WrongEmail.incorrectEmail: content = `incorrectEmail`; break;
+                        case WrongEmail.missingEmail: content = `missingEmail`; break;
+                        case WrongEmail.tooManyEmails: content = `toomanyEmails`; break;
+                        case WrongEmail.wrongDomain: content = `wrongdomain`; break;
+                    }
+                    message.reply({ content });
+                    return;
+                }
+
+                const newEmail = await this.email.save({
+                    emailHash: SHA512(messageEmail).toString(),
+                    memberId: channel.assignedMember.id,
+                })
+
+                const code = this.verification.generateCode();
+                await this.code.save({
+                    memberId: channel.assignedMember.id,
+                    emailId: newEmail.id,
+                    code,
+                })
+
+                message.reply({ content: `Właśnie wysłałem wiadomość z kodem na Twój email: "${messageEmail}", podaj mi go aby uzyskać dostęp do serwera.` });
+                return;
+            }
+
+            const threeDaysAgo: Date = new Date();
+            threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+
+            if (requestedEmail.createdAt < threeDaysAgo) {
+
+            }
+
 
 
 

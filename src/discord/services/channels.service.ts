@@ -7,10 +7,8 @@ import { InjectDiscordClient } from '@discord-nestjs/core';
 import { Member } from '@libs/database/entities/member.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
-    ChannelType,
     Client, Guild, GuildBasedChannel, GuildChannelManager,
-    PermissionsBitField, TextChannel,
-    VoiceChannel
+    PermissionsBitField, TextChannel
 } from 'discord.js';
 import { Repository } from 'typeorm';
 import { SHA512 } from 'crypto-js';

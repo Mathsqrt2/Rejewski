@@ -28,25 +28,25 @@ export class Member {
     @Column({ type: `boolean`, default: false })
     acceptedRules: boolean;
 
-    @OneToOne(() => Email, email => email.assignedMember)
+    @OneToOne(() => Email, email => email.assignedMember, { nullable: true })
     @JoinColumn()
     assignedEmail: Email;
 
     @CreateDateColumn({ type: `timestamp` })
     createdAt: Date;
 
-    @UpdateDateColumn({ type: `timestamp`, nullable: true })
+    @UpdateDateColumn({ type: `timestamp`, nullable: true, default: null, update: true, insert: false })
     updatedAt?: Date;
 
-    @OneToMany(() => Channel, chat => chat.assignedMember)
+    @OneToMany(() => Channel, chat => chat.assignedMember, { nullable: true })
     @JoinColumn()
     channels: Channel[];
 
-    @OneToMany(() => Code, code => code.assignedMember)
+    @OneToMany(() => Code, code => code.assignedMember, { nullable: true })
     @JoinColumn()
     codes: Code[];
 
-    @OneToMany(() => Request, request => request.assignedMember)
+    @OneToMany(() => Request, request => request.assignedMember, { nullable: true })
     @JoinColumn()
     requests: Request[];
 

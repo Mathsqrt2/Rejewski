@@ -25,7 +25,7 @@ export class Email {
     @CreateDateColumn({ type: `timestamp` })
     createdAt: Date;
 
-    @UpdateDateColumn({ type: `timestamp`, nullable: true })
+    @UpdateDateColumn({ type: `timestamp`, nullable: true, default: null, update: true, insert: false })
     updatedAt: Date;
 
     @OneToMany(() => Code, code => code.assignedEmail)

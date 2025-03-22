@@ -1,22 +1,21 @@
 import { InjectDiscordClient, On, Once } from "@discord-nestjs/core";
+import { DiscordEvents } from "@libs/enums/discord.events.enum";
 import { MessagesService } from "./services/messages.service";
 import { ChannelsService } from "./services/channels.service";
+import { AppEvents, BotResponse, Roles } from "@libs/enums";
 import { MembersService } from "./services/members.service";
 import { Cron, CronExpression } from "@nestjs/schedule";
+import { RolesService } from "./services/roles.service";
+import { LogsTypes } from "@libs/enums/logs.type.enum";
+import { EventEmitter2 } from "@nestjs/event-emitter";
+import { DiscordMember } from "@libs/types/discord";
 import { SettingsService } from "@libs/settings";
 import { Injectable } from "@nestjs/common";
-import { LogsTypes } from "@libs/enums/logs.type.enum";
 import { Logger } from "@libs/logger";
 import {
     ActivityType, ButtonInteraction, Client, Events, Message,
 } from "discord.js";
-import { RolesService } from "./services/roles.service";
-import { AppEvents, BotResponse, Roles } from "@libs/enums";
 import { SHA512 } from 'crypto-js';
-import { DiscordMember } from "@libs/types/discord";
-import { EventEmitter2 } from "@nestjs/event-emitter";
-import { Content } from "src/app.content";
-import { DiscordEvents } from "@libs/enums/discord.events.enum";
 
 @Injectable()
 export class BotGateway {
@@ -80,24 +79,15 @@ export class BotGateway {
         if (member.isConfirmed && member.acceptedRules) {
 
             const isRoleAssigned = await this.rolesService.assignRoleToUser(discordMember.id, Roles.STUDENT);
-            const channelId = member.channels.filter(channel => channel.isPrivate).at(0);
-
-            if (isRoleAssigned) {
-
-                this.channelsService.removeDiscordChannel(channelId.discordId);
-                this.logger.log(`User role assigned successfully`, {
+            isRoleAssigned
+                ? this.logger.log(`User role assigned successfully`, {
                     tag: LogsTypes.PERMISSIONS_GRANTED,
                     startTime
-                });
-
-            } else {
-
-                this.logger.error(`Failed to assign role.`, {
+                })
+                : this.logger.error(`Failed to assign role.`, {
                     tag: LogsTypes.PERMISSIONS_FAIL,
                     startTime
                 });
-
-            }
             return;
         }
 
@@ -123,8 +113,6 @@ export class BotGateway {
         } else {
             await this.messagesService.sendMessage(channel.id, BotResponse.askAboutEmail);
         }
-
-
 
     }
 

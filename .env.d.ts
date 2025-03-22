@@ -3,7 +3,7 @@ declare namespace NodeJS {
     SECRET: string;
     DISCORD_TOKEN: string;
     GUILD_ID: string;
-    NEW_USERS_PARENT: string;
+    NEW_MEMBERS_PARENT: string;
     ADMINISTRATION_PARENT: string;
     PRIVATE_PARENT: string;
 

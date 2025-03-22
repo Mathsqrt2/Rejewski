@@ -35,9 +35,9 @@ export class ChannelsService implements OnApplicationBootstrap {
         await this.updateChannelsInfo();
     }
 
-
     public updateChannelsInfo = async (): Promise<boolean> => {
 
+        const startTime: number = Date.now();
         const guild: Guild = this.client.guilds.cache.get(process.env.GUILD_ID);
         if (!guild) {
             throw new Error(`Failed to find specified guild.`);
@@ -52,18 +52,19 @@ export class ChannelsService implements OnApplicationBootstrap {
             }
         }
 
-        const newDiscordChannels = discordChannels.filter(discordChannel => (
-            !this.channels.some(channel => discordChannel.id === channel.discordId)
-        ));
+        const newDiscordChannels = discordChannels.filter(discordChannel =>
+            !this.channels.some(channel => channel.discordId === discordChannel.id) &&
+            (!discordChannel.parentId || discordChannel.parentId !== process.env.NEW_MEMBERS_PARENT)
+        );
 
         await Promise.all(newDiscordChannels.map(discordChannel => this.channel.save({
             discordId: discordChannel.id,
             isAdministration: discordChannel?.parentId === process.env.ADMINISTRATION_PARENT,
             isPrivate:
-                discordChannel?.parentId === process.env.PRIVATE_PARENT ||
-                discordChannel.parentId === process.env.NEW_USERS_PARENT
+                discordChannel?.parentId === process.env.PRIVATE_PARENT
         })));
 
+        this.logger.log(`Channels refreshed successfully.`, { startTime });
         return true;
     }
 
@@ -76,7 +77,7 @@ export class ChannelsService implements OnApplicationBootstrap {
 
             const member: Member = await this.member.findOneBy({ discordIdHash });
             if (!member) {
-                throw new NotFoundException(`User not found.`)
+                throw new NotFoundException(`Member not found.`)
             }
 
             let channel: Channel = await this.channel.findOneBy({ memberId: member.id, isDeleted: false });
@@ -172,7 +173,7 @@ export class ChannelsService implements OnApplicationBootstrap {
             const channel: TextChannel = await channelsManager.create({
                 name: `${name} access server.`,
                 type: 0,
-                parent: process.env.NEW_USERS_PARENT,
+                parent: process.env.NEW_MEMBERS_PARENT,
                 permissionOverwrites: [
                     {
                         id: discordMember.guild.id,
@@ -242,8 +243,8 @@ export class ChannelsService implements OnApplicationBootstrap {
 
         const startTime: number = Date.now();
         try {
-            const channel = await this.channel.findOne({ where: { discordId: discordChannelId } });
 
+            const channel = await this.channel.findOne({ where: { discordId: discordChannelId } });
             if (!channel) {
                 await this.channel.save({
                     discordId: discordChannelId,

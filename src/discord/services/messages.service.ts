@@ -87,6 +87,17 @@ export class MessagesService {
                 return;
             }
 
+            const discordMemberIdHash = SHA512(message.author.id).toString();
+            if (channel.assignedMember.discordIdHash !== discordMemberIdHash) {
+                this.logger.warn(`Action suspended. Someone else is using client channel.`, { startTime });
+                return;
+            }
+
+            if (!channel.assignedMember.acceptedRules) {
+                message.reply({ content: `Aby odblokować zawartość serwera, musisz najpierw zaakceptować regulamin.` });
+                return;
+            }
+
             const maxAttemptsNumberPerHous: number = 3;
             const oneDayAgo = new Date();
             oneDayAgo.setDate(oneDayAgo.getDate() - 1);
@@ -99,24 +110,13 @@ export class MessagesService {
                 order: { id: `DESC` },
                 take: maxAttemptsNumberPerHous,
             });
-            this.logger.debug(requestsCountFromLastHour)
+
             if (requestsCountFromLastHour > maxAttemptsNumberPerHous) {
                 const latestAttempt = requests.at(-1);
                 const unlockTime: Date = new Date(latestAttempt.createdAt.setDate(latestAttempt.createdAt.getDate() + 1));
 
                 message.reply({ content: `Spróbowałeś podać kod zbyt wiele razy. Możesz spróbować ponownie po ${unlockTime.toLocaleString(`pl-PL`)}` });
                 return
-            }
-
-            const discordMemberIdHash = SHA512(message.author.id).toString();
-            if (channel.assignedMember.discordIdHash !== discordMemberIdHash) {
-                this.logger.warn(`Action suspended. Someone else is using client channel.`, { startTime });
-                return;
-            }
-
-            if (!channel.assignedMember.acceptedRules) {
-                message.reply({ content: `Aby odblokować zawartość serwera, musisz najpierw zaakceptować regulamin.` });
-                return;
             }
 
             if (channel.assignedMember.isConfirmed) {

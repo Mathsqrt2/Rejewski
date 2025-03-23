@@ -8,7 +8,7 @@ export class Code {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column({ type: `varchar`, length: 8 })
+    @Column({ type: `varchar`, length: 6 })
     code: string
 
     @Column({ type: `int` })

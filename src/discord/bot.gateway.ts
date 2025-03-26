@@ -119,6 +119,7 @@ export class BotGateway {
             await this.messagesService.sendMessage(channel.id, BotResponse.askAboutEmail);
         }
 
+        await this.channelsService.updateChannelsInfo();
     }
 
     @On(Events.ChannelCreate)

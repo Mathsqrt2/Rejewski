@@ -26,7 +26,7 @@ export class Request {
     @JoinColumn({ name: `emailId` })
     assignedEmail: Email;
 
-    @OneToOne(() => Code, code => code.request, { nullable: true })
+    @OneToOne(() => Code, code => code.request, { nullable: true, onDelete: `CASCADE` })
     @JoinColumn()
     code: Code;
 

@@ -98,14 +98,14 @@ export class MessagesService {
                 return;
             }
 
-            const maxAttemptsNumberPerHous: number = 3;
-            const oneDayAgo = new Date();
-            oneDayAgo.setHours(oneDayAgo.getHours() - 1);
+            const maxAttemptsNumberPerHous: number = 33;
+            const oneHourAgo = new Date();
+            oneHourAgo.setHours(oneHourAgo.getHours() - 1);
 
             const [requests, requestsCountFromLastHour] = await this.request.findAndCount({
                 where: {
                     memberId: channel.assignedMember.id,
-                    createdAt: MoreThanOrEqual(oneDayAgo),
+                    createdAt: MoreThanOrEqual(oneHourAgo),
                 },
                 order: { id: `DESC` },
                 take: maxAttemptsNumberPerHous,
@@ -121,23 +121,23 @@ export class MessagesService {
 
             if (channel.assignedMember.isConfirmed) {
                 const isRoleAssigned = await this.rolesService.assignRoleToUser(message.author.id, Roles.STUDENT);
-                isRoleAssigned
-                    ? this.logger.log(`User role assigned successfully`, {
+
+                if (isRoleAssigned) {
+                    await this.channelsService.removeDiscordChannel(message.channelId);
+                    this.logger.log(`User role assigned successfully`, {
                         tag: LogsTypes.PERMISSIONS_GRANTED,
                         startTime
                     })
-                    : this.logger.error(`Failed to assign role.`, {
+                } else {
+                    this.logger.error(`Failed to assign role.`, {
                         tag: LogsTypes.PERMISSIONS_FAIL,
                         startTime
                     });
+                }
                 return;
             }
 
-            const lastMemberRequest = await this.request.findOne({
-                where: { memberId: channel.assignedMember.id },
-                order: { id: `DESC` },
-            });
-
+            const lastMemberRequest = requests?.at(-1) || null;
             const threeDaysAgo: Date = new Date();
             threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
 
@@ -172,7 +172,7 @@ export class MessagesService {
                     relations: [`code`],
                 })
 
-                if (request && request.code.expireDate >= new Date()) {
+                if (request && request.code?.expireDate >= new Date()) {
                     this.emailer.sendVerificationEmailTo(messageEmail, request.code.code);
                     message.reply(`Twój poprzedni kod jest wciąż aktualny, wysłałem go ponownie na Twojego maila. Jeżeli go nie widzisz, sprawdź w spamie.`);
                     return;
@@ -184,7 +184,7 @@ export class MessagesService {
                 });
 
                 const code = await this.verification.generateCode(request, newEmail);
-                this.emailer.sendVerificationEmailTo(messageEmail, code.code);
+                await this.emailer.sendVerificationEmailTo(messageEmail, code.code);
 
                 message.reply({ content: `Właśnie wysłałem wiadomość z kodem na Twój email: "${messageEmail}", podaj mi go aby uzyskać dostęp do serwera.` });
                 return;
@@ -211,25 +211,27 @@ export class MessagesService {
 
             const member: Member = await this.member.findOne({
                 where: { id: channel.assignedMember.id },
-                relations: [`requests`, `requests.code`]
+                relations: [`requests`, `requests.code`, `requests.assignedEmail`],
             })
 
-            this.logger.debug(member);
-
-            const code = member.requests.find(request => request.code?.createdAt > threeDaysAgo);
-            if (!code) {
-                message.reply({ content: `ostatni kod już wygasł, podaj ponownie maila, a wyślę Ci nowy` });
+            const request = member.requests.find(request => request.code?.createdAt > threeDaysAgo);
+            if (!request.code) {
+                message.reply({ content: `Twój ostatni kod już wygasł, podaj ponownie maila, a wyślę Ci nowy` });
                 return;
             }
 
-            const lastCode: Code = code.code;
-            if (lastCode.code === messageCode) {
+            if (request.code.code === messageCode) {
 
                 await this.rolesService.assignRoleToUser(message.author.id, Roles.STUDENT);
                 await this.channelsService.removeDiscordChannel(message.channelId);
+                await this.email.save({
+                    ...request.assignedEmail,
+                    isConfirmed: true,
+                    memberId: member.id,
+                })
 
             } else {
-                message.reply({ content: `Podany kod jest nieprawidłowy, spróbuj ponownie:` })
+                message.reply({ content: `Podany kod jest nieprawidłowy, spróbuj ponownie:` });
             }
 
         } catch (error) {
@@ -336,6 +338,5 @@ export class MessagesService {
             components: [row],
         })
     }
-
 
 }

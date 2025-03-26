@@ -3,7 +3,6 @@ import {
     OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn
 } from "typeorm";
 import { Member } from "./member.entity";
-import { Code } from "./code.entity";
 import { Request } from "./request.entity";
 
 @Entity({ name: `emails` })
@@ -30,9 +29,6 @@ export class Email {
 
     @UpdateDateColumn({ type: `timestamp`, nullable: true, default: null, update: true, insert: false })
     updatedAt: Date;
-
-    @OneToMany(() => Code, code => code.assignedEmail)
-    codes: Code[]
 
     @OneToMany(() => Request, request => request.assignedMember)
     @JoinColumn()

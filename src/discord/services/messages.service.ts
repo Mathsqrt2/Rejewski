@@ -5,28 +5,28 @@ import {
 } from "discord.js";
 import { InjectDiscordClient } from "@discord-nestjs/core";
 import { Channel } from "@libs/database/entities/channel.entity";
+import { Request } from "@libs/database/entities/request.entity";
+import { DiscordEvents } from "@libs/enums/discord.events.enum";
 import { Member } from "@libs/database/entities/member.entity";
+import { Email } from "@libs/database/entities/email.entity";
+import { Code } from "@libs/database/entities/code.entity";
 import { BotResponse } from "@libs/enums/responses.enum";
+import { WrongEmail } from "@libs/enums/wrongEmail.enum";
+import { VerificationService } from "@libs/verification";
+import { WrongCode } from "@libs/enums/wrongCode.enum";
+import { MoreThanOrEqual, Repository } from "typeorm";
 import { ChannelsService } from "./channels.service";
 import { AppEvents } from "@libs/enums/events.enum";
 import { InjectRepository } from "@nestjs/typeorm";
 import { ContentService } from "./content.service";
 import { OnEvent } from "@nestjs/event-emitter";
+import { LogsTypes, Roles } from "@libs/enums";
+import { EmailerService } from "@libs/emailer";
+import { RolesService } from "./roles.service";
 import { Injectable } from "@nestjs/common";
 import { Content } from "src/app.content";
 import { Logger } from "@libs/logger";
-import { MoreThanOrEqual, Repository } from "typeorm";
 import { SHA512 } from "crypto-js";
-import { DiscordEvents } from "@libs/enums/discord.events.enum";
-import { RolesService } from "./roles.service";
-import { LogsTypes, Roles } from "@libs/enums";
-import { Email } from "@libs/database/entities/email.entity";
-import { WrongEmail } from "@libs/enums/wrongEmail.enum";
-import { VerificationService } from "@libs/verification";
-import { Code } from "@libs/database/entities/code.entity";
-import { EmailerService } from "@libs/emailer";
-import { WrongCode } from "@libs/enums/wrongCode.enum";
-import { Request } from "@libs/database/entities/request.entity";
 
 @Injectable()
 export class MessagesService {
@@ -100,7 +100,7 @@ export class MessagesService {
 
             const maxAttemptsNumberPerHous: number = 3;
             const oneDayAgo = new Date();
-            oneDayAgo.setDate(oneDayAgo.getDate() - 1);
+            oneDayAgo.setHours(oneDayAgo.getHours() - 1);
 
             const [requests, requestsCountFromLastHour] = await this.request.findAndCount({
                 where: {
@@ -113,7 +113,7 @@ export class MessagesService {
 
             if (requestsCountFromLastHour > maxAttemptsNumberPerHous) {
                 const latestAttempt = requests.at(-1);
-                const unlockTime: Date = new Date(latestAttempt.createdAt.setDate(latestAttempt.createdAt.getDate() + 1));
+                const unlockTime: Date = new Date(latestAttempt.createdAt.setHours(latestAttempt.createdAt.getHours() + 1));
 
                 message.reply({ content: `Spróbowałeś podać kod zbyt wiele razy. Możesz spróbować ponownie po ${unlockTime.toLocaleString(`pl-PL`)}` });
                 return
@@ -133,7 +133,7 @@ export class MessagesService {
                 return;
             }
 
-            const requestedEmail = await this.email.findOne({
+            const lastMemberRequest = await this.request.findOne({
                 where: { memberId: channel.assignedMember.id },
                 order: { id: `DESC` },
             });
@@ -141,7 +141,7 @@ export class MessagesService {
             const threeDaysAgo: Date = new Date();
             threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
 
-            if (!requestedEmail || requestedEmail.createdAt < threeDaysAgo) {
+            if (!lastMemberRequest || lastMemberRequest.createdAt < threeDaysAgo) {
 
                 const [messageEmail, error]: [string, WrongEmail] = this.contentService.detectEmail(message.content);
                 if (error) {
@@ -157,19 +157,34 @@ export class MessagesService {
                     return;
                 }
 
-                const newEmail = await this.email.save({
-                    emailHash: SHA512(messageEmail).toString(),
-                    memberId: channel.assignedMember.id,
+                const emailHash: string = SHA512(messageEmail).toString();
+                let newEmail = await this.email.findOne({ where: { emailHash } });
+
+                if (!newEmail) {
+                    newEmail = await this.email.save({ emailHash });
+                }
+
+                let request = await this.request.findOne({
+                    where: {
+                        memberId: channel.assignedMember.id,
+                        emailId: newEmail.id
+                    },
+                    relations: [`code`],
                 })
 
-                const code = this.verification.generateCode();
-                await this.code.save({
+                if (request && request.code.expireDate >= new Date()) {
+                    this.emailer.sendVerificationEmailTo(messageEmail, request.code.code);
+                    message.reply(`Twój poprzedni kod jest wciąż aktualny, wysłałem go ponownie na Twojego maila. Jeżeli go nie widzisz, sprawdź w spamie.`);
+                    return;
+                }
+
+                request = await this.request.save({
                     memberId: channel.assignedMember.id,
                     emailId: newEmail.id,
-                    code,
-                })
+                });
 
-                this.emailer.sendVerificationEmailTo(messageEmail, code);
+                const code = await this.verification.generateCode(request, newEmail);
+                this.emailer.sendVerificationEmailTo(messageEmail, code.code);
 
                 message.reply({ content: `Właśnie wysłałem wiadomość z kodem na Twój email: "${messageEmail}", podaj mi go aby uzyskać dostęp do serwera.` });
                 return;
@@ -179,8 +194,7 @@ export class MessagesService {
 
             await this.request.save({
                 memberId: channel.assignedMember.id,
-                emailId: requestedEmail.id,
-                code: messageCode || error
+                emailId: lastMemberRequest.emailId,
             })
 
             if (error) {
@@ -197,16 +211,18 @@ export class MessagesService {
 
             const member: Member = await this.member.findOne({
                 where: { id: channel.assignedMember.id },
-                relations: [`codes`]
+                relations: [`requests`, `requests.code`]
             })
 
-            const code = member.codes.filter(code => code.createdAt < threeDaysAgo);
-            if (!code.length) {
+            this.logger.debug(member);
+
+            const code = member.requests.find(request => request.code?.createdAt > threeDaysAgo);
+            if (!code) {
                 message.reply({ content: `ostatni kod już wygasł, podaj ponownie maila, a wyślę Ci nowy` });
                 return;
             }
 
-            const lastCode: Code = code.at(0);
+            const lastCode: Code = code.code;
             if (lastCode.code === messageCode) {
 
                 await this.rolesService.assignRoleToUser(message.author.id, Roles.STUDENT);

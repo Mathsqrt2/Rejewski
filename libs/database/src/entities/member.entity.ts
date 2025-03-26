@@ -45,10 +45,6 @@ export class Member {
     @JoinColumn()
     channels: Channel[];
 
-    @OneToMany(() => Code, code => code.assignedMember, { nullable: true })
-    @JoinColumn()
-    codes: Code[];
-
     @OneToMany(() => Request, request => request.assignedMember, { nullable: true })
     @JoinColumn()
     requests: Request[];

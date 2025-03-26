@@ -1,7 +1,10 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import {
+    Column, CreateDateColumn, Entity, JoinColumn,
+    ManyToOne, OneToOne, PrimaryGeneratedColumn
+} from "typeorm";
 import { Member } from "./member.entity";
 import { Email } from "./email.entity";
-
+import { Code } from "./code.entity";
 
 @Entity()
 export class Request {
@@ -23,8 +26,9 @@ export class Request {
     @JoinColumn({ name: `emailId` })
     assignedEmail: Email;
 
-    @Column({ type: `varchar`, length: 32 })
-    code: string;
+    @OneToOne(() => Code, code => code.request, { nullable: true })
+    @JoinColumn()
+    code: Code;
 
     @CreateDateColumn({ type: `timestamp` })
     createdAt: Date

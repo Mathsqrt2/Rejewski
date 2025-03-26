@@ -16,7 +16,7 @@ export class ContentService implements OnApplicationBootstrap {
     ) { }
 
     public async onApplicationBootstrap() {
-        this.emails = await this.email.find({ relations: [`codes`] });
+        this.emails = await this.email.find();
     }
 
     public detectEmail = (message: string): [string, WrongEmail] => {

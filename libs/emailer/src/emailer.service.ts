@@ -10,7 +10,6 @@ import { Logger } from '@libs/logger';
 export class EmailerService {
 
     constructor(
-        private readonly verificationCode: VerificationService,
         private readonly mailerService: MailerService,
         private readonly logger: Logger,
     ) { }

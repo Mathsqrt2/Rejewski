@@ -1,6 +1,9 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
-import { Email } from "./email.entity";
-import { Member } from "./member.entity";
+import {
+    Column, CreateDateColumn, Entity,
+    JoinColumn, ManyToOne, OneToOne,
+    PrimaryGeneratedColumn
+} from "typeorm";
+import { Request } from "./request.entity";
 
 @Entity({ name: `codes` })
 export class Code {
@@ -14,16 +17,9 @@ export class Code {
     @Column({ type: `int` })
     emailId: number;
 
-    @ManyToOne(() => Email, email => email.codes)
-    @JoinColumn({ name: `emailId` })
-    assignedEmail: Email;
-
-    @Column({ type: `int` })
-    memberId: number;
-
-    @ManyToOne(() => Member, member => member.codes)
-    @JoinColumn({ name: `userId` })
-    assignedMember: Member;
+    @OneToOne(() => Request, request => request.code, { nullable: true })
+    @JoinColumn()
+    request: Request;
 
     @Column({ type: 'timestamp' })
     expireDate: Date;

@@ -5,7 +5,6 @@ import { DatabaseModule } from "@libs/database";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { SettingsModule } from "@libs/settings";
 import { EmailerModule } from "@libs/emailer";
-import { GatewayModule } from "@libs/gateway";
 import { LoggerModule } from "@libs/logger";
 import { BotGateway } from "./bot.gateway";
 import { Module } from "@nestjs/common";
@@ -23,7 +22,6 @@ import { InteractionService } from "./services/interaction.service";
         VerificationModule,
         DatabaseModule,
         SettingsModule,
-        GatewayModule,
         EmailerModule,
         LoggerModule
     ],

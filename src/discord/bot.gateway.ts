@@ -76,6 +76,11 @@ export class BotGateway {
             return;
         }
 
+        if (this.settings.app.state.mode === `DEVELOPMENT` && !this.memberService.isAccountTesting(discordMember.id)) {
+            this.logger.warn(`Real user joined to the server when bot was in development mode. Action suspended.`)
+            return;
+        }
+
         if (member.isConfirmed && member.acceptedRules) {
 
             const isRoleAssigned = await this.rolesService.assignRoleToUser(discordMember.id, Roles.STUDENT);
@@ -147,6 +152,19 @@ export class BotGateway {
             return;
         }
 
+        if (this.settings.app.state.mode === `DEVELOPMENT`) {
+
+            if (!this.memberService.isAccountTesting(message.author.id)) {
+                this.logger.warn(`Message was sent by real user in development mode. Action suspended.`)
+                return;
+            }
+
+            if (!this.channelsService.isChannelTesting(message.channelId)) {
+                this.logger.warn(`Message was sent on real channel in development mode. Action suspended.`)
+                return;
+            }
+        }
+
         try {
 
             const discordChannel = await this.channelsService.findDiscordChannelById(message?.channelId);
@@ -189,6 +207,19 @@ export class BotGateway {
         const startTime: number = Date.now();
         if (!interaction.isButton()) {
             return;
+        }
+
+        if (this.settings.app.state.mode === `DEVELOPMENT`) {
+
+            if (!this.memberService.isAccountTesting(interaction.user.id)) {
+                this.logger.warn(`Interaction happened with real user in development mode. Action suspended.`)
+                return;
+            }
+
+            if (!this.channelsService.isChannelTesting(interaction.channelId)) {
+                this.logger.warn(`Interaction happened on real channel in development mode. Action suspended.`)
+                return;
+            }
         }
 
         if (interaction.customId === DiscordEvents.acceptRules) {

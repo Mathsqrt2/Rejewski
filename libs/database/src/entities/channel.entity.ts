@@ -20,6 +20,9 @@ export class Channel {
     isPersonal: boolean;
 
     @Column({ type: `boolean`, default: false })
+    isTesting: boolean;
+
+    @Column({ type: `boolean`, default: false })
     isAdministration: boolean;
 
     @Column({ type: `int`, nullable: true })

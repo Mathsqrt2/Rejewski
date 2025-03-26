@@ -98,4 +98,12 @@ export class MembersService implements OnApplicationBootstrap {
         }
     }
 
+    public isAccountTesting = (discordId: string): boolean => {
+        const discordIdHash = SHA512(discordId).toString();
+        return this.members.some(member => (
+            member.discordIdHash === discordIdHash &&
+            member.isTester
+        ));
+    }
+
 }

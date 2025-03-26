@@ -7,9 +7,9 @@ export class SettingsService {
     public app: AppConfig = {
         name: `RejewskiBot`,
         state: {
+            mode: 'DEVELOPMENT',
             shouldBeLogsArchived: true,
             shouldLog: true,
         }
     };
-
 }

@@ -197,6 +197,7 @@ export class ChannelsService implements OnApplicationBootstrap {
                 memberId: member.id,
                 discordId: channel.id,
                 isPrivate: true,
+                isTesting: member.isTester
             })
 
             this.logger.log(`Channel for member ${discordIdHash} created successfully.`, {
@@ -286,6 +287,13 @@ export class ChannelsService implements OnApplicationBootstrap {
         } catch (error) {
             this.logger.error(`Failed to remove discord channel.`, { startTime });
         }
+    }
+
+    public isChannelTesting = (discordId: string): boolean => {
+        return this.channels.some(channel => (
+            channel.discordId === discordId &&
+            channel.isTesting
+        ))
     }
 
 }

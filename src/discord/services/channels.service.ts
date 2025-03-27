@@ -1,20 +1,23 @@
 import { Channel } from '@libs/database/entities/channel.entity';
 import {
-    BadRequestException, Injectable, NotFoundException,
-    OnApplicationBootstrap
-} from '@nestjs/common';
-import { InjectDiscordClient } from '@discord-nestjs/core';
-import { Member } from '@libs/database/entities/member.entity';
-import { InjectRepository } from '@nestjs/typeorm';
-import {
     Client, Guild, GuildBasedChannel, GuildChannelManager,
     PermissionsBitField, TextChannel
 } from 'discord.js';
+import {
+    BadRequestException, Injectable, NotFoundException,
+    OnApplicationBootstrap
+} from '@nestjs/common';
+import { Member } from '@libs/database/entities/member.entity';
+import { InjectDiscordClient } from '@discord-nestjs/core';
+import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { SHA512 } from 'crypto-js';
-import { DiscordChannel, DiscordChannelType, DiscordMember } from '@libs/types/discord';
-import { Logger } from '@libs/logger';
+import {
+    DiscordChannel, DiscordChannelType,
+    DiscordMember
+} from '@libs/types/discord';
 import { LogsTypes } from '@libs/enums';
+import { Logger } from '@libs/logger';
 
 @Injectable()
 export class ChannelsService implements OnApplicationBootstrap {
@@ -193,12 +196,12 @@ export class ChannelsService implements OnApplicationBootstrap {
                 throw new Error(`Failed to create discord channel.`);
             }
 
-            await this.channel.save({
+            this.channels.push(await this.channel.save({
                 memberId: member.id,
                 discordId: channel.id,
                 isPrivate: true,
                 isTesting: member.isTester
-            })
+            }));
 
             this.logger.log(`Channel for member ${discordIdHash} created successfully.`, {
                 tag: LogsTypes.CHANNEL_CREATED,

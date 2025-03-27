@@ -32,10 +32,9 @@ export class TestController {
                 await this.messagesService.sendMessage(channelId, response as BotResponse);
             } catch (error) {
                 this.logger.error(`Failed to send ${response}.`, { error, startTime });
-            } finally {
-                this.logger.log(`Messages sent successfully.`, { startTime });
             }
         }
+        this.logger.log(`Messages sent successfully.`, { startTime });
     }
 
     @Get(`:channelId/button`)

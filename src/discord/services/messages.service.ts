@@ -98,7 +98,7 @@ export class MessagesService {
                 return;
             }
 
-            const maxAttemptsNumberPerHous: number = 33;
+            const maxAttemptsNumberPerHous: number = 3;
             const oneHourAgo = new Date();
             oneHourAgo.setHours(oneHourAgo.getHours() - 1);
 
@@ -121,7 +121,6 @@ export class MessagesService {
 
             if (channel.assignedMember.isConfirmed) {
                 const isRoleAssigned = await this.rolesService.assignRoleToUser(message.author.id, Roles.STUDENT);
-
                 if (isRoleAssigned) {
                     await this.channelsService.removeDiscordChannel(message.channelId);
                     this.logger.log(`User role assigned successfully`, {
@@ -137,11 +136,17 @@ export class MessagesService {
                 return;
             }
 
-            const lastMemberRequest = requests?.at(-1) || null;
             const threeDaysAgo: Date = new Date();
             threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+            const requestsFromLastThreeDays = await this.request.find({
+                where: {
+                    memberId: channel.assignedMember.id,
+                    createdAt: MoreThanOrEqual(threeDaysAgo),
+                },
+                order: { id: `DESC` },
+            })
 
-            if (!lastMemberRequest || lastMemberRequest.createdAt < threeDaysAgo) {
+            if (!requestsFromLastThreeDays.length || !requestsFromLastThreeDays.some(r => r.emailId)) {
 
                 const [messageEmail, error]: [string, WrongEmail] = this.contentService.detectEmail(message.content);
                 if (error) {
@@ -159,7 +164,6 @@ export class MessagesService {
 
                 const emailHash: string = SHA512(messageEmail).toString();
                 let newEmail = await this.email.findOne({ where: { emailHash } });
-
                 if (!newEmail) {
                     newEmail = await this.email.save({ emailHash });
                 }
@@ -183,6 +187,8 @@ export class MessagesService {
                     emailId: newEmail.id,
                 });
 
+                this.logger.debug(messageEmail);
+
                 const code = await this.verification.generateCode(request, newEmail);
                 await this.emailer.sendVerificationEmailTo(messageEmail, code.code);
 
@@ -191,19 +197,26 @@ export class MessagesService {
             }
 
             const [messageCode, error]: [string, WrongCode] = await this.contentService.detectCode(message);
-
+            const lastRequestWithEmail = requestsFromLastThreeDays.find(r => r.emailId);
             await this.request.save({
                 memberId: channel.assignedMember.id,
-                emailId: lastMemberRequest.emailId,
+                emailId: lastRequestWithEmail.emailId,
             })
 
             if (error) {
                 let content: string = null;
                 switch (error) {
-                    case WrongCode.emailInsteadCode: `emailInsteadCode`; break;
-                    case WrongCode.incorrectCode: `incorrectCode`; break;
-                    case WrongCode.missingCode: `missingCode`; break;
-                    case WrongCode.wrongCodeFormat: `wrongCodeFormat`; break;
+                    case WrongCode.emailInsteadCode: content = `emailInsteadCode`;
+                        break;
+                    case WrongCode.incorrectCode: content = `incorrectCode`;
+                        break;
+                    case WrongCode.missingCode:
+                        content = `missingCode`;
+
+                        break;
+                    case WrongCode.wrongCodeFormat:
+                        content = `wrongCodeFormat`;
+                        break;
                 }
                 message.reply({ content });
                 return;
@@ -228,6 +241,11 @@ export class MessagesService {
                     ...request.assignedEmail,
                     isConfirmed: true,
                     memberId: member.id,
+                })
+                await this.member.save({
+                    ...member,
+                    isConfirmed: true,
+                    emailId: 1
                 })
 
             } else {

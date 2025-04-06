@@ -66,6 +66,18 @@ export class MessagesService {
 
     }
 
+    private respondToWrongEmail = async (message: Message, error: WrongEmail): Promise<void> => {
+        let content: string = null;
+        switch (error) {
+            case WrongEmail.emailInUse: content = `emailInUse`; break;
+            case WrongEmail.incorrectEmail: content = `incorrectEmail`; break;
+            case WrongEmail.missingEmail: content = `missingEmail`; break;
+            case WrongEmail.tooManyEmails: content = `toomanyEmails`; break;
+            case WrongEmail.wrongDomain: content = `wrongdomain`; break;
+        }
+        await message.reply({ content });
+    }
+
     @OnEvent(AppEvents.PrivateMessage, { async: true })
     private async handlePrivateChannelMessage(message: Message): Promise<void> {
 
@@ -111,7 +123,7 @@ export class MessagesService {
                 take: maxAttemptsNumberPerHous,
             });
 
-            if (requestsCountFromLastHour > maxAttemptsNumberPerHous) {
+            if (requestsCountFromLastHour >= maxAttemptsNumberPerHous) {
                 const latestAttempt = requests.at(-1);
                 const unlockTime: Date = new Date(latestAttempt.createdAt.setHours(latestAttempt.createdAt.getHours() + 1));
 
@@ -146,58 +158,51 @@ export class MessagesService {
                 order: { id: `DESC` },
             })
 
-            if (!requestsFromLastThreeDays.length || !requestsFromLastThreeDays.some(r => r.emailId)) {
+            if (!requestsFromLastThreeDays.length || !requestsFromLastThreeDays.some(request => request.emailId)) {
 
                 const [messageEmail, error]: [string, WrongEmail] = this.contentService.detectEmail(message.content);
                 if (error) {
-                    let content: string = null;
-                    switch (error) {
-                        case WrongEmail.emailInUse: content = `emailInUse`; break;
-                        case WrongEmail.incorrectEmail: content = `incorrectEmail`; break;
-                        case WrongEmail.missingEmail: content = `missingEmail`; break;
-                        case WrongEmail.tooManyEmails: content = `toomanyEmails`; break;
-                        case WrongEmail.wrongDomain: content = `wrongdomain`; break;
-                    }
-                    message.reply({ content });
+                    await this.respondToWrongEmail(message, error);
                     return;
                 }
 
                 const emailHash: string = SHA512(messageEmail).toString();
-                let newEmail = await this.email.findOne({ where: { emailHash } });
+                let newEmail = await this.email.findOne({ where: { emailHash }, relations: [`assignedMember`] });
                 if (!newEmail) {
                     newEmail = await this.email.save({ emailHash });
                 }
 
-                let request = await this.request.findOne({
-                    where: {
-                        memberId: channel.assignedMember.id,
-                        emailId: newEmail.id
-                    },
-                    relations: [`code`],
-                })
-
-                if (request && request.code?.expireDate >= new Date()) {
-                    this.emailer.sendVerificationEmailTo(messageEmail, request.code.code);
-                    message.reply(`Twój poprzedni kod jest wciąż aktualny, wysłałem go ponownie na Twojego maila. Jeżeli go nie widzisz, sprawdź w spamie.`);
-                    return;
-                }
-
-                request = await this.request.save({
+                const request = await this.request.save({
                     memberId: channel.assignedMember.id,
                     emailId: newEmail.id,
                 });
 
-                this.logger.debug(messageEmail);
-
                 const code = await this.verification.generateCode(request, newEmail);
-                await this.emailer.sendVerificationEmailTo(messageEmail, code.code);
+                await this.emailer.sendVerificationEmailTo(messageEmail, code.value);
 
                 message.reply({ content: `Właśnie wysłałem wiadomość z kodem na Twój email: "${messageEmail}", podaj mi go aby uzyskać dostęp do serwera.` });
                 return;
             }
 
+            const lastRequestWithEmail: Request = requestsFromLastThreeDays.find(request => request.emailId);
+            if (lastRequestWithEmail && lastRequestWithEmail.code?.expireDate >= new Date()) {
+
+                const [messageEmail, error]: [string, WrongEmail] = this.contentService.detectEmail(message.content);
+                if (error) {
+                    await this.respondToWrongEmail(message, error);
+                    return;
+                }
+
+
+
+                const content: string = `Twój poprzedni kod jest wciąż aktualny, wysłałem go ponownie na Twojego maila. Jeżeli go nie widzisz, sprawdź w spamie.`
+                this.emailer.sendVerificationEmailTo(content, lastRequestWithEmail.code.value);
+                message.reply(content);
+                return;
+
+            }
+
             const [messageCode, error]: [string, WrongCode] = await this.contentService.detectCode(message);
-            const lastRequestWithEmail = requestsFromLastThreeDays.find(r => r.emailId);
             await this.request.save({
                 memberId: channel.assignedMember.id,
                 emailId: lastRequestWithEmail.emailId,
@@ -233,7 +238,7 @@ export class MessagesService {
                 return;
             }
 
-            if (request.code.code === messageCode) {
+            if (request.code.value === messageCode) {
 
                 await this.rolesService.assignRoleToUser(message.author.id, Roles.STUDENT);
                 await this.channelsService.removeDiscordChannel(message.channelId);

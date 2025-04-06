@@ -1,3 +1,4 @@
+import { BotResponse } from "@libs/enums";
 import { ContentStorage } from "@libs/types/content";
 
 export class Content {

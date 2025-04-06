@@ -12,7 +12,7 @@ export class Code {
     id: number;
 
     @Column({ type: `varchar`, length: 6 })
-    code: string
+    value: string
 
     @Column({ type: `int` })
     emailId: number;

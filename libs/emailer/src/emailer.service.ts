@@ -43,7 +43,7 @@ export class EmailerService {
             const text: string = await render(CodeTemplate(props), { plainText: true });
             const html: string = await render(CodeTemplate(props));
 
-            const emaila = await this.mailerService.sendMail({
+            return await this.mailerService.sendMail({
                 to: email,
                 subject,
                 text,

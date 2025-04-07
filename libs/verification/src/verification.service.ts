@@ -1,9 +1,8 @@
-import { Code } from '@libs/database/entities/code.entity';
-import { Email } from '@libs/database/entities/email.entity';
-import { Member } from '@libs/database/entities/member.entity';
-import { Injectable } from '@nestjs/common';
 import { Request } from '@libs/database/entities/request.entity';
+import { Email } from '@libs/database/entities/email.entity';
+import { Code } from '@libs/database/entities/code.entity';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
 
 @Injectable()
@@ -27,7 +26,7 @@ export class VerificationService {
         const newCode = await this.code.save({
             emailId: email.id,
             request,
-            code,
+            value: code,
             expireDate: threeDaysFromNow,
         })
 

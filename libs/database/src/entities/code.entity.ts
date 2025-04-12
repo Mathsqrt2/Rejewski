@@ -1,6 +1,6 @@
 import {
     Column, CreateDateColumn, Entity,
-    JoinColumn, ManyToOne, OneToOne,
+    JoinColumn, OneToOne,
     PrimaryGeneratedColumn
 } from "typeorm";
 import { Request } from "./request.entity";

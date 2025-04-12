@@ -4,6 +4,15 @@ import { Email } from "./entities/email.entity";
 import { Code } from "./entities/code.entity";
 import { Log } from "./entities/log.entity";
 import { Request } from "./entities/request.entity";
+import { Description } from "./entities/description.entity";
 
 
-export const databaseEntities = [Channel, Code, Email, Member, Log, Request];
+export const databaseEntities = [
+    Channel,
+    Code,
+    Email,
+    Member,
+    Log,
+    Request,
+    Description,
+];

@@ -4,7 +4,6 @@ import {
 } from "typeorm";
 import { Email } from "./email.entity";
 import { Channel } from "./channel.entity";
-import { Code } from "./code.entity";
 import { Request } from "./request.entity";
 
 @Entity({ name: `members` })

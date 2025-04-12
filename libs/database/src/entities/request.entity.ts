@@ -6,7 +6,7 @@ import { Member } from "./member.entity";
 import { Email } from "./email.entity";
 import { Code } from "./code.entity";
 
-@Entity()
+@Entity({ name: `requests` })
 export class Request {
 
     @PrimaryGeneratedColumn({ type: `int` })

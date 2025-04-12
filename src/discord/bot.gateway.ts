@@ -1,33 +1,41 @@
+import { Cron, CronExpression, SchedulerRegistry } from "@nestjs/schedule";
+import { Description } from "@libs/database/entities/description.entity";
 import { InjectDiscordClient, On, Once } from "@discord-nestjs/core";
+import { Injectable, OnApplicationBootstrap } from "@nestjs/common";
 import { DiscordEvents } from "@libs/enums/discord.events.enum";
 import { MessagesService } from "./services/messages.service";
 import { ChannelsService } from "./services/channels.service";
 import { AppEvents, BotResponse, Roles } from "@libs/enums";
 import { MembersService } from "./services/members.service";
-import { Cron, CronExpression } from "@nestjs/schedule";
 import { RolesService } from "./services/roles.service";
 import { LogsTypes } from "@libs/enums/logs.type.enum";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import { DiscordMember } from "@libs/types/discord";
+import { InjectRepository } from "@nestjs/typeorm";
 import { SettingsService } from "@libs/settings";
-import { Injectable } from "@nestjs/common";
 import { Logger } from "@libs/logger";
 import {
     ActivityType, ButtonInteraction, Client, Events, Message,
 } from "discord.js";
 import { SHA512 } from 'crypto-js';
+import { Repository } from "typeorm";
 
 @Injectable()
 export class BotGateway {
 
+    private botStatuses: string[] = [];
+    private lastStatusUsed: number = 0;
+
     constructor(
         @InjectDiscordClient() private readonly client: Client,
+        @InjectRepository(Description) private readonly description: Repository<Description>,
         private readonly messagesService: MessagesService,
         private readonly channelsService: ChannelsService,
         private readonly memberService: MembersService,
         private readonly eventEmitter: EventEmitter2,
         private readonly rolesService: RolesService,
         private readonly settings: SettingsService,
+        private readonly cron: SchedulerRegistry,
         private readonly logger: Logger,
     ) { }
 
@@ -37,14 +45,39 @@ export class BotGateway {
         await this.channelsService.updateChannelsInfo();
     }
 
+    @Cron(CronExpression.EVERY_5_MINUTES, { name: `changeCurrentBotActivity`, disabled: true })
+    public async changeCurrentBotActivity(): Promise<void> {
+
+        const index = (this.lastStatusUsed++ % this.botStatuses.length);
+        const currentStatus = this.botStatuses[index];
+        this.client.user.setActivity({
+            name: currentStatus,
+            type: ActivityType.Custom,
+        })
+
+    }
+
     @Once(Events.ClientReady)
     public async onClientReady() {
 
+        const descriptions = await this.description.find();
+        if (descriptions) {
+            this.botStatuses = descriptions.map(description => description.value);
+        }
+
+        const initialStatus = this.botStatuses.at(0) || `✅ W czym mogę służyć?`;
+
         const startTime = Date.now();
         this.client.user.setActivity({
-            name: `✅ W czym mogę służyć?`,
+            name: initialStatus,
             type: ActivityType.Custom,
         })
+
+        const cronJob = this.cron.getCronJob(`changeCurrentBotActivity`);
+        if (this.botStatuses.length > 1) {
+            cronJob.start();
+            this.logger.log(`Activity change cron started.`);
+        }
 
         try {
 

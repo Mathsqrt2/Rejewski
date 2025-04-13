@@ -5,6 +5,7 @@ import {
 import { Email } from "./email.entity";
 import { Channel } from "./channel.entity";
 import { Request } from "./request.entity";
+import { Warn } from "./warn.entity";
 
 @Entity({ name: `members` })
 export class Member {
@@ -44,8 +45,12 @@ export class Member {
     @JoinColumn()
     channels: Channel[];
 
-    @OneToMany(() => Request, request => request.assignedMember, { nullable: true })
+    @OneToMany(() => Request, request => request.assignedMember, { nullable: true, onDelete: `CASCADE` })
     @JoinColumn()
     requests: Request[];
+
+    @OneToMany(() => Warn, warn => warn.assignedMember, { nullable: true, onDelete: `CASCADE` })
+    @JoinColumn()
+    warns: Warn[];
 
 }

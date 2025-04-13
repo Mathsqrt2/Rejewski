@@ -5,7 +5,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Injectable } from "@nestjs/common";
 import { Logger } from "@libs/logger";
 import { Repository } from "typeorm";
-import { ButtonInteraction, Client } from "discord.js";
+import { ButtonInteraction, Client, MessageFlags } from "discord.js";
 import { OnEvent } from "@nestjs/event-emitter";
 import { AppEvents, BotResponse, LogsTypes, Roles } from "@libs/enums";
 import { SHA512 } from 'crypto-js';
@@ -72,7 +72,7 @@ export class InteractionService {
 
             await interaction.reply({
                 content: Content.messages.confirmRulesAcceptance(),
-                ephemeral: false,
+                flags: [MessageFlags.Ephemeral],
             })
 
             await this.messagesService.sendMessage(interaction.channelId, BotResponse.askAboutEmail);

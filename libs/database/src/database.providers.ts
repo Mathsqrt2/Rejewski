@@ -5,6 +5,8 @@ import { Code } from "./entities/code.entity";
 import { Log } from "./entities/log.entity";
 import { Request } from "./entities/request.entity";
 import { Description } from "./entities/description.entity";
+import { Dictionary } from "./entities/dictionary.entity";
+import { Warn } from "./entities/warn.entity";
 
 
 export const databaseEntities = [
@@ -15,4 +17,6 @@ export const databaseEntities = [
     Log,
     Request,
     Description,
+    Dictionary,
+    Warn
 ];

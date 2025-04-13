@@ -1,9 +1,12 @@
 import {
-    ActionRowBuilder, ButtonBuilder,
+    ActionRowBuilder, ButtonBuilder, SendableChannels,
     ButtonInteraction, ButtonStyle, Client, Message,
-    SendableChannels
+    MessageFlags,
+    MessageFlagsBitField
 } from "discord.js";
 import { InjectDiscordClient } from "@discord-nestjs/core";
+import { Dictionary } from "@libs/database/entities/dictionary.entity";
+import { Injectable, OnApplicationBootstrap } from "@nestjs/common";
 import { Channel } from "@libs/database/entities/channel.entity";
 import { Request } from "@libs/database/entities/request.entity";
 import { DiscordEvents } from "@libs/enums/discord.events.enum";
@@ -23,7 +26,6 @@ import { OnEvent } from "@nestjs/event-emitter";
 import { LogsTypes, Roles } from "@libs/enums";
 import { EmailerService } from "@libs/emailer";
 import { RolesService } from "./roles.service";
-import { Injectable } from "@nestjs/common";
 import { Content } from "src/app.content";
 import { Logger } from "@libs/logger";
 import { SHA512 } from "crypto-js";
@@ -49,15 +51,27 @@ export class MessagesService {
     @OnEvent(AppEvents.PublicMessage, { async: true })
     private async handlePublicChannelMessage(message: Message): Promise<void> {
 
-        const doesMessageContainMaliciousLinkResult = this.contentService.detectMaliciousLinks(message);
+        let response: string = Content.messages.informAboutMessageRemoval();
+        const [doesMessageContainMaliciousLinkResult]: [boolean, string[]] = this.contentService.detectMaliciousLinks(message);
         if (doesMessageContainMaliciousLinkResult) {
-            //todo, remove message, warn user, notify admin; 
+            response += Content.messages.informAboutMaliciousLinks();
         }
 
-        const doesMessageContainProfanityResult = this.contentService.detectProfanity(message);
-        if (doesMessageContainMaliciousLinkResult) {
-            // todo, remove message, warn user, notify admin
+        const [doesMessageContainProfanityResult]: [boolean, string[]] = this.contentService.detectProfanity(message);
+        if (doesMessageContainProfanityResult) {
+            response += Content.messages.informAboutProfanity();
         }
+
+        response += Content.messages.followRulesReminder();
+        if (!doesMessageContainMaliciousLinkResult && !doesMessageContainProfanityResult) {
+            return;
+        }
+
+        await message.reply({
+            content: response,
+            flags: [MessageFlags.SuppressNotifications],
+        });
+        await message.delete();
 
     }
 

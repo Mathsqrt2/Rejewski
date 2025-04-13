@@ -6,17 +6,28 @@ import { Message } from "discord.js";
 import { Repository } from "typeorm";
 import { SHA512 } from "crypto-js";
 import { WrongCode } from "@libs/enums/wrongCode.enum";
+import { Dictionary } from "@libs/database/entities/dictionary.entity";
 
 @Injectable()
 export class ContentService implements OnApplicationBootstrap {
 
+    private blackListedUrls: Dictionary[] = [];
+    private blackListedWords: Dictionary[] = [];
     private emails: Email[] = [];
+
     constructor(
+        @InjectRepository(Dictionary) private readonly dictionary: Repository<Dictionary>,
         @InjectRepository(Email) private readonly email: Repository<Email>
     ) { }
 
-    public async onApplicationBootstrap() {
+    public onApplicationBootstrap = async (): Promise<void> => {
+
+        const blackList = await this.dictionary.find({ where: { blackList: true } });
+        this.blackListedUrls = blackList.filter(word => word.isUrl);
+        this.blackListedWords = blackList.filter(word => !word.isUrl);
+
         this.emails = await this.email.find();
+
     }
 
     public detectEmail = (message: string): [string, WrongEmail] => {
@@ -68,14 +79,32 @@ export class ContentService implements OnApplicationBootstrap {
         return [message.content, null];
     }
 
-    public detectMaliciousLinks = async (message: Message): Promise<boolean> => {
-        // placeholder todo
-        return false;
+    public detectMaliciousLinks = (message: Message): [boolean, string[]] => {
+
+        const matches: string[] = [];
+        const words: string[] = message.content.split(` `);
+
+        for (const word of words) {
+            if (this.blackListedUrls.some(restrictedLink => restrictedLink.phrase === word)) {
+                matches.push(word);
+            }
+        }
+
+        return [!!matches.length, matches];
     }
 
-    public detectProfanity = async (message: Message): Promise<boolean> => {
-        // placeholder todo
-        return false;
+    public detectProfanity = (message: Message): [boolean, string[]] => {
+
+        const matches: string[] = [];
+        const words: string[] = message.content.split(` `);
+
+        for (const word of words) {
+            if (this.blackListedWords.some(restrictedWord => restrictedWord.phrase === word)) {
+                matches.push(word);
+            }
+        }
+
+        return [!!matches.length, matches];
     }
 
 

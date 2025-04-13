@@ -1,7 +1,6 @@
 import { Cron, CronExpression, SchedulerRegistry } from "@nestjs/schedule";
 import { Description } from "@libs/database/entities/description.entity";
 import { InjectDiscordClient, On, Once } from "@discord-nestjs/core";
-import { Injectable, OnApplicationBootstrap } from "@nestjs/common";
 import { DiscordEvents } from "@libs/enums/discord.events.enum";
 import { MessagesService } from "./services/messages.service";
 import { ChannelsService } from "./services/channels.service";
@@ -13,6 +12,7 @@ import { EventEmitter2 } from "@nestjs/event-emitter";
 import { DiscordMember } from "@libs/types/discord";
 import { InjectRepository } from "@nestjs/typeorm";
 import { SettingsService } from "@libs/settings";
+import { Injectable } from "@nestjs/common";
 import { Logger } from "@libs/logger";
 import {
     ActivityType, ButtonInteraction, Client, Events, Message,
@@ -186,18 +186,18 @@ export class BotGateway {
             return;
         }
 
-        if (this.settings.app.state.mode === `DEVELOPMENT`) {
+        // if (this.settings.app.state.mode === `DEVELOPMENT`) {
 
-            if (!this.memberService.isAccountTesting(message.author.id)) {
-                this.logger.warn(`Message was sent by real user in development mode. Action suspended.`)
-                return;
-            }
+        //     if (!this.memberService.isAccountTesting(message.author.id)) {
+        //         this.logger.warn(`Message was sent by real user in development mode. Action suspended.`)
+        //         return;
+        //     }
 
-            if (!this.channelsService.isChannelTesting(message.channelId)) {
-                this.logger.warn(`Message was sent on real channel in development mode. Action suspended.`)
-                return;
-            }
-        }
+        //     if (!this.channelsService.isChannelTesting(message.channelId)) {
+        //         this.logger.warn(`Message was sent on real channel in development mode. Action suspended.`)
+        //         return;
+        //     }
+        // }
 
         try {
 

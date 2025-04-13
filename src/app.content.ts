@@ -33,6 +33,11 @@ export class Content {
         sendServerRules: () => `todo: Regulamin serwera CyberSec`,
         askAboutAcceptanceOfRules: () => `Czy akceptujesz warunki regulaminu?`,
         confirmRulesAcceptance: () => `Pomyślnie zaakceptowano regulamin`,
+        informAboutMessageRemoval: () => `Twoja wiadomość narusza zasady serwera, dlatego została usunięta.\n`,
+        informAboutMaliciousLinks: () => `- wiadomość zawierała nieodpowiednie linki.\n`,
+        informAboutProfanity: () => `- wiadomość zawierała niewłaściwe słownictwo.\n`,
+        followRulesReminder: () => `Zachęcamy do przestrzegania regulaminu serwera.`,
+
     };
 
     public static interface: ContentStorage = {

@@ -1,4 +1,10 @@
 import { databaseEntities } from "@libs/database/database.providers";
+import { InteractionService } from "./services/interaction.service";
+import { ChannelsService } from "./services/channels.service";
+import { MessagesService } from "./services/messages.service";
+import { MembersService } from "./services/members.service";
+import { ContentService } from "./services/content.service";
+import { RolesService } from "./services/roles.service";
 import { VerificationModule } from "@libs/verification";
 import { DiscordModule } from "@discord-nestjs/core";
 import { DatabaseModule } from "@libs/database";
@@ -8,12 +14,6 @@ import { EmailerModule } from "@libs/emailer";
 import { LoggerModule } from "@libs/logger";
 import { BotGateway } from "./bot.gateway";
 import { Module } from "@nestjs/common";
-import { MessagesService } from "./services/messages.service";
-import { MembersService } from "./services/members.service";
-import { ChannelsService } from "./services/channels.service";
-import { RolesService } from "./services/roles.service";
-import { ContentService } from "./services/content.service";
-import { InteractionService } from "./services/interaction.service";
 
 @Module({
     imports: [

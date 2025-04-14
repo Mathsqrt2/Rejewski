@@ -1,11 +1,11 @@
 import { Injectable, OnApplicationBootstrap } from '@nestjs/common';
+import { Client, Guild, PermissionsBitField } from 'discord.js';
 import { Member } from '@libs/database/entities/member.entity';
 import { InjectDiscordClient } from '@discord-nestjs/core';
 import { InjectRepository } from '@nestjs/typeorm';
 import { LogsTypes } from '@libs/enums';
 import { Logger } from '@libs/logger';
 import { Repository } from 'typeorm';
-import { Client, Guild, PermissionsBitField } from 'discord.js';
 import { SHA512 } from 'crypto-js'
 
 @Injectable()

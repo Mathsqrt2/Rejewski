@@ -1,25 +1,21 @@
-import { Channel } from "@libs/database/entities/channel.entity";
+import { AppEvents, BotResponse, LogsTypes, Roles } from "@libs/enums";
+import { ButtonInteraction, MessageFlags } from "discord.js";
 import { Member } from "@libs/database/entities/member.entity";
-import { InjectDiscordClient } from "@discord-nestjs/core";
+import { MessagesService } from "./messages.service";
 import { InjectRepository } from "@nestjs/typeorm";
+import { OnEvent } from "@nestjs/event-emitter";
+import { RolesService } from "./roles.service";
 import { Injectable } from "@nestjs/common";
+import { Content } from "src/app.content";
 import { Logger } from "@libs/logger";
 import { Repository } from "typeorm";
-import { ButtonInteraction, Client, MessageFlags } from "discord.js";
-import { OnEvent } from "@nestjs/event-emitter";
-import { AppEvents, BotResponse, LogsTypes, Roles } from "@libs/enums";
 import { SHA512 } from 'crypto-js';
-import { RolesService } from "./roles.service";
-import { MessagesService } from "./messages.service";
-import { Content } from "src/app.content";
 
 @Injectable()
 export class InteractionService {
 
     constructor(
-        @InjectRepository(Channel) private readonly channel: Repository<Channel>,
         @InjectRepository(Member) private readonly member: Repository<Member>,
-        @InjectDiscordClient() private readonly client: Client,
         private readonly messagesService: MessagesService,
         private readonly rolesService: RolesService,
         private readonly logger: Logger,

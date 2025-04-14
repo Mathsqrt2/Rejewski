@@ -254,8 +254,6 @@ export class ChannelsService implements OnApplicationBootstrap {
                 return `public`;
             } else if (channel.isPersonal) {
                 return `personal`;
-            } else if (channel.isAdministration) {
-                return `admin`;
             } else if (channel.isPrivate) {
                 return `private`;
             } else if (!channel.isPersonal && !channel.isPrivate && !channel.isAdministration) {

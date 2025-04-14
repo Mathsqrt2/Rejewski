@@ -15,7 +15,8 @@ import { SettingsService } from "@libs/settings";
 import { Injectable } from "@nestjs/common";
 import { Logger } from "@libs/logger";
 import {
-    ActivityType, ButtonInteraction, Client, Events, Message,
+    ActivityType, ButtonInteraction, Client,
+    Events, Message,
 } from "discord.js";
 import { SHA512 } from 'crypto-js';
 import { Repository } from "typeorm";
@@ -186,18 +187,18 @@ export class BotGateway {
             return;
         }
 
-        // if (this.settings.app.state.mode === `DEVELOPMENT`) {
+        if (this.settings.app.state.mode === `DEVELOPMENT`) {
 
-        //     if (!this.memberService.isAccountTesting(message.author.id)) {
-        //         this.logger.warn(`Message was sent by real user in development mode. Action suspended.`)
-        //         return;
-        //     }
+            if (!this.memberService.isAccountTesting(message.author.id)) {
+                this.logger.warn(`Message was sent by real user in development mode. Action suspended.`)
+                return;
+            }
 
-        //     if (!this.channelsService.isChannelTesting(message.channelId)) {
-        //         this.logger.warn(`Message was sent on real channel in development mode. Action suspended.`)
-        //         return;
-        //     }
-        // }
+            if (!this.channelsService.isChannelTesting(message.channelId)) {
+                this.logger.warn(`Message was sent on real channel in development mode. Action suspended.`)
+                return;
+            }
+        }
 
         try {
 

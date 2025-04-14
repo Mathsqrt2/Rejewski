@@ -2,7 +2,7 @@ import { InjectDiscordClient } from "@discord-nestjs/core";
 import { Roles } from "@libs/enums";
 import { Logger } from "@libs/logger";
 import { Injectable, OnApplicationBootstrap } from "@nestjs/common";
-import { Client, Guild, GuildMember, PartialGuildMember } from "discord.js";
+import { Client, Guild } from "discord.js";
 
 @Injectable()
 export class RolesService implements OnApplicationBootstrap {

@@ -2,11 +2,8 @@ import {
     ActionRowBuilder, ButtonBuilder, SendableChannels,
     ButtonInteraction, ButtonStyle, Client, Message,
     MessageFlags,
-    MessageFlagsBitField
 } from "discord.js";
 import { InjectDiscordClient } from "@discord-nestjs/core";
-import { Dictionary } from "@libs/database/entities/dictionary.entity";
-import { Injectable, OnApplicationBootstrap } from "@nestjs/common";
 import { Channel } from "@libs/database/entities/channel.entity";
 import { Request } from "@libs/database/entities/request.entity";
 import { DiscordEvents } from "@libs/enums/discord.events.enum";
@@ -26,6 +23,7 @@ import { OnEvent } from "@nestjs/event-emitter";
 import { LogsTypes, Roles } from "@libs/enums";
 import { EmailerService } from "@libs/emailer";
 import { RolesService } from "./roles.service";
+import { Injectable } from "@nestjs/common";
 import { Content } from "src/app.content";
 import { Logger } from "@libs/logger";
 import { SHA512 } from "crypto-js";
@@ -52,18 +50,18 @@ export class MessagesService {
     private async handlePublicChannelMessage(message: Message): Promise<void> {
 
         let response: string = Content.messages.informAboutMessageRemoval();
-        const [doesMessageContainMaliciousLinkResult]: [boolean, string[]] = this.contentService.detectMaliciousLinks(message);
-        if (doesMessageContainMaliciousLinkResult) {
+        const [doesMessageContainMaliciousLink]: [boolean, string[]] = this.contentService.detectMaliciousLinks(message);
+        if (doesMessageContainMaliciousLink) {
             response += Content.messages.informAboutMaliciousLinks();
         }
 
-        const [doesMessageContainProfanityResult]: [boolean, string[]] = this.contentService.detectProfanity(message);
-        if (doesMessageContainProfanityResult) {
+        const [doesMessageContainProfanity]: [boolean, string[]] = this.contentService.detectProfanity(message);
+        if (doesMessageContainProfanity) {
             response += Content.messages.informAboutProfanity();
         }
 
         response += Content.messages.followRulesReminder();
-        if (!doesMessageContainMaliciousLinkResult && !doesMessageContainProfanityResult) {
+        if (!doesMessageContainMaliciousLink && !doesMessageContainProfanity) {
             return;
         }
 
@@ -72,11 +70,6 @@ export class MessagesService {
             flags: [MessageFlags.SuppressNotifications],
         });
         await message.delete();
-
-    }
-
-    @OnEvent(AppEvents.AdministrationMessage, { async: true })
-    private async handleAdministrationChannelMessage(message: Message): Promise<void> {
 
     }
 
@@ -274,12 +267,6 @@ export class MessagesService {
         } catch (error) {
             this.logger.error(`Failed to handle private channel message.`, { error, startTime });
         }
-
-    }
-
-    @OnEvent(AppEvents.PersonalMessage, { async: true })
-    private async handlePersonalChannelMessage(message: Message): Promise<void> {
-
 
     }
 

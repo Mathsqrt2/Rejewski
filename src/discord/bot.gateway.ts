@@ -12,7 +12,7 @@ import { EventEmitter2 } from "@nestjs/event-emitter";
 import { DiscordMember } from "@libs/types/discord";
 import { InjectRepository } from "@nestjs/typeorm";
 import { SettingsService } from "@libs/settings";
-import { Injectable } from "@nestjs/common";
+import { Injectable, OnApplicationBootstrap } from "@nestjs/common";
 import { Logger } from "@libs/logger";
 import {
     ActivityType, ButtonInteraction, Client,
@@ -22,7 +22,7 @@ import { SHA512 } from 'crypto-js';
 import { Repository } from "typeorm";
 
 @Injectable()
-export class BotGateway {
+export class BotGateway implements OnApplicationBootstrap {
 
     private botStatuses: string[] = [];
     private lastStatusUsed: number = 0;
@@ -42,8 +42,10 @@ export class BotGateway {
 
     @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
     public async removeUnusedChannels(): Promise<void> {
-        await this.channelsService.removeUnusedChannels();
-        await this.channelsService.updateChannelsInfo();
+        this.channelsService.removeUnusedChannels();
+        this.channelsService.updateChannelsInfo();
+        this.memberService.updateMembersInfo();
+        this.rolesService.updateRolesInfo();
     }
 
     @Cron(CronExpression.EVERY_5_MINUTES, { name: `changeCurrentBotActivity`, disabled: true })
@@ -59,7 +61,7 @@ export class BotGateway {
     }
 
     @Once(Events.ClientReady)
-    public async onClientReady() {
+    public async onClientReady(): Promise<void> {
 
         const descriptions = await this.description.find();
         if (descriptions) {
@@ -95,6 +97,21 @@ export class BotGateway {
             });
         }
 
+    }
+
+    @On(Events.GuildRoleCreate)
+    public async onGuildRoleCreate(): Promise<void> {
+        await this.rolesService.updateRolesInfo();
+    }
+
+    @On(Events.GuildRoleUpdate)
+    public async onGuildRoleUpdate(): Promise<void> {
+        await this.rolesService.updateRolesInfo();
+    }
+
+    @On(Events.GuildRoleDelete)
+    public async onGuildRoleDelete(): Promise<void> {
+        await this.rolesService.updateRolesInfo();
     }
 
     @On(Events.GuildMemberAdd)
@@ -166,8 +183,13 @@ export class BotGateway {
         await this.channelsService.updateChannelsInfo();
     }
 
+    @On(Events.ChannelUpdate)
+    public async onChannelUpdate(): Promise<void> {
+        await this.channelsService.updateChannelsInfo();
+    }
+
     @On(Events.MessageCreate)
-    public async handleMemberMessage(message: Message) {
+    public async handleMemberMessage(message: Message): Promise<void> {
 
         const startTime: number = Date.now();
         if (message.author.bot) {
@@ -265,5 +287,11 @@ export class BotGateway {
             }
             return;
         }
+    }
+
+    public async onApplicationBootstrap() {
+        this.channelsService.updateChannelsInfo();
+        this.rolesService.updateRolesInfo();
+        this.memberService.updateMembersInfo();
     }
 }

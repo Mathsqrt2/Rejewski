@@ -21,7 +21,6 @@ export class MembersService implements OnApplicationBootstrap {
 
     public async onApplicationBootstrap() {
         this.members = await this.member.find();
-        await this.updateMembersInfo();
     }
 
     public updateMembersInfo = async (): Promise<boolean> => {
@@ -48,7 +47,6 @@ export class MembersService implements OnApplicationBootstrap {
         }));
 
         this.logger.log(`Members refreshed successfully.`, { startTime });
-
         return true;
     }
 

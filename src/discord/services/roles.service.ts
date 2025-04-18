@@ -18,12 +18,36 @@ export class RolesService {
         private readonly logger: Logger,
     ) { }
 
-    public updateRoleDetails = async () => {
+    public updateRoleDetails = async (newRole: Role) => {
+
+        const startTime: number = Date.now();
+        try {
+            const localRole = await this.localRole.findOne({ where: { discordRoleId: newRole.id } });
+
+            await this.localRole.save({
+                ...localRole,
+                name: newRole.name,
+                isAdmin: newRole.permissions.has(PermissionFlagsBits.Administrator),
+                isDeleted: false,
+                isVerified:
+                    newRole.id === process.env.VERIFIED_ROLE_ID
+                    || newRole.id === process.env.MEMBER_ROLE_ID
+                    || newRole.permissions.has(PermissionFlagsBits.Administrator),
+                isMember:
+                    newRole.id === process.env.MEMBER_ROLE_ID
+                    || newRole.permissions.has(PermissionFlagsBits.Administrator),
+                updatedAt: Date.now(),
+            });
+
+        } catch (error) {
+            this.logger.error(`Failed to update ${newRole.name} params.`, { startTime });
+        }
 
     }
 
     public updateRolesInfo = async () => {
 
+        const startTime: number = Date.now();
         try {
 
             const guild: Guild = this.client.guilds.cache.get(process.env.GUILD_ID);
@@ -48,10 +72,10 @@ export class RolesService {
                     isDeleted: false,
                     isVerified:
                         role.id === process.env.VERIFIED_ROLE_ID
-                        || role.id === process.env.MEMBER_ID
+                        || role.id === process.env.MEMBER_ROLE_ID
                         || role.permissions.has(PermissionFlagsBits.Administrator),
                     isMember:
-                        role.id === process.env.MEMBER_ID
+                        role.id === process.env.MEMBER_ROLE_ID
                         || role.permissions.has(PermissionFlagsBits.Administrator),
                 })));
 
@@ -64,6 +88,7 @@ export class RolesService {
                 isDeleted: true,
             })))
 
+            this.logger.log(`Roles refreshed successfully.`, { startTime });
             return this.discordRoles;
 
         } catch (error) {
@@ -72,7 +97,32 @@ export class RolesService {
     }
 
     public assignRoleToUser = async (memberId: string, role: Roles): Promise<boolean> => {
-        return true;
-    }
 
+        let roleId: string = null;
+        switch (role) {
+            case Roles.MEMBER: roleId = process.env.MEMBER_ROLE_ID;
+                break;
+            case Roles.VERIFIED: roleId = process.env.VERIFIED_ROLE_ID
+                break;
+        }
+
+        if (!roleId) {
+            this.logger.warn(`Action suspended. Unhandled role type.`);
+            return;
+        }
+
+        try {
+            const guild = this.client.guilds.cache.get(process.env.GUILD_ID);
+            if (!guild) {
+                throw new Error('Guild not found');
+            }
+
+            const member = await guild.members.fetch(memberId);
+            await member.roles.add(roleId)
+            return true;
+        } catch (error) {
+            this.logger.error(`Failed to assign role ${role} to user.`, { error });
+            return false;
+        }
+    }
 }

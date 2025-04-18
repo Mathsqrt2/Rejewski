@@ -1,6 +1,4 @@
 export enum Roles {
-    STUDENT,
+    VERIFIED,
     MEMBER,
-    FRIEND,
-    GUEST,
 }

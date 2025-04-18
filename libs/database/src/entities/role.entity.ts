@@ -12,7 +12,7 @@ export class LocalRole {
     @Column({ type: `varchar`, length: 128 })
     name: string;
 
-    @Column({ type: `int`, nullable: true })
+    @Column({ type: `int`, nullable: true, default: null })
     groupId?: number;
 
     @Column({ type: `boolean`, default: false })

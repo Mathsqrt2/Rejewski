@@ -33,7 +33,6 @@ export class ChannelsService implements OnApplicationBootstrap {
 
     public async onApplicationBootstrap() {
         this.channels = await this.channel.find();
-        await this.updateChannelsInfo();
     }
 
     public updateChannelsInfo = async (): Promise<boolean> => {

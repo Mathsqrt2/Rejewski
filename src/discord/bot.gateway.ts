@@ -17,6 +17,7 @@ import { Logger } from "@libs/logger";
 import {
     ActivityType, ButtonInteraction, Client,
     Events, Message,
+    Role,
 } from "discord.js";
 import { SHA512 } from 'crypto-js';
 import { Repository } from "typeorm";
@@ -41,7 +42,7 @@ export class BotGateway implements OnApplicationBootstrap {
     ) { }
 
     @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
-    public async removeUnusedChannels(): Promise<void> {
+    public removeUnusedChannels(): void {
         this.channelsService.removeUnusedChannels();
         this.channelsService.updateChannelsInfo();
         this.memberService.updateMembersInfo();
@@ -49,7 +50,7 @@ export class BotGateway implements OnApplicationBootstrap {
     }
 
     @Cron(CronExpression.EVERY_5_MINUTES, { name: `changeCurrentBotActivity`, disabled: true })
-    public async changeCurrentBotActivity(): Promise<void> {
+    public changeCurrentBotActivity(): void {
 
         const index = (this.lastStatusUsed++ % this.botStatuses.length);
         const currentStatus = this.botStatuses[index];
@@ -100,21 +101,19 @@ export class BotGateway implements OnApplicationBootstrap {
     }
 
     @On(Events.GuildRoleCreate)
-    public async onGuildRoleCreate(): Promise<void> {
-        await this.rolesService.updateRolesInfo();
-        this.logger.debug(`role create called`);
+    public onGuildRoleCreate(): void {
+        this.rolesService.updateRolesInfo();
     }
 
     @On(Events.GuildRoleUpdate)
-    public async onGuildRoleUpdate(): Promise<void> {
-        await this.rolesService.updateRolesInfo();
-        this.logger.debug(`role create updae`);
+    public async onGuildRoleUpdate(_: Role, newRole: Role): Promise<void> {
+        await this.rolesService.updateRoleDetails(newRole)
+        this.rolesService.updateRolesInfo();
     }
 
     @On(Events.GuildRoleDelete)
-    public async onGuildRoleDelete(): Promise<void> {
-        await this.rolesService.updateRolesInfo();
-        this.logger.debug(`role create delete`);
+    public onGuildRoleDelete(): void {
+        this.rolesService.updateRolesInfo();
     }
 
     @On(Events.GuildMemberAdd)
@@ -137,7 +136,7 @@ export class BotGateway implements OnApplicationBootstrap {
 
         if (member.isConfirmed && member.acceptedRules) {
 
-            const isRoleAssigned = await this.rolesService.assignRoleToUser(discordMember.id, Roles.STUDENT);
+            const isRoleAssigned = await this.rolesService.assignRoleToUser(discordMember.id, Roles.VERIFIED);
             isRoleAssigned
                 ? this.logger.log(`User role assigned successfully`, {
                     tag: LogsTypes.PERMISSIONS_GRANTED,
@@ -177,18 +176,18 @@ export class BotGateway implements OnApplicationBootstrap {
     }
 
     @On(Events.ChannelCreate)
-    public async onChannelCreate(): Promise<void> {
-        await this.channelsService.updateChannelsInfo();
+    public onChannelCreate(): void {
+        this.channelsService.updateChannelsInfo();
     }
 
     @On(Events.ChannelDelete)
-    public async onChannelDelete(): Promise<void> {
-        await this.channelsService.updateChannelsInfo();
+    public onChannelDelete(): void {
+        this.channelsService.updateChannelsInfo();
     }
 
     @On(Events.ChannelUpdate)
-    public async onChannelUpdate(): Promise<void> {
-        await this.channelsService.updateChannelsInfo();
+    public onChannelUpdate(): void {
+        this.channelsService.updateChannelsInfo();
     }
 
     @On(Events.MessageCreate)

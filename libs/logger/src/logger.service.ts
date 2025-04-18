@@ -25,7 +25,7 @@ export class Logger {
 
         const context = config?.context || null;
         const save = config?.save ?? this.shouldSave();
-        const content = message.toString().substring(0, this.textFieldMaxLength);
+        const content = message?.toString().substring(0, this.textFieldMaxLength);
         const display = config?.display ?? true;
 
         if (save) {
@@ -52,7 +52,7 @@ export class Logger {
 
         const context = config?.context ?? null;
         const save = config?.save ?? this.shouldSave();
-        const content = message.toString().substring(0, this.textFieldMaxLength);
+        const content = message?.toString().substring(0, this.textFieldMaxLength);
         const display = config?.display ?? true;
 
         if (save) {
@@ -80,7 +80,7 @@ export class Logger {
         const context = config?.context ?? null;
         const save = config?.save ?? this.shouldSave();
         const error = config?.error ?? null;
-        const content = message.toString().substring(0, this.textFieldMaxLength);
+        const content = message?.toString().substring(0, this.textFieldMaxLength);
         const display = config?.display ?? true;
         const displayError = config?.displayError ?? true;
 
@@ -122,7 +122,7 @@ export class Logger {
 
         const context = config?.context ?? null;
         const save = config?.save ?? this.shouldSave();
-        const content = message.toString().substring(0, this.textFieldMaxLength);
+        const content = message?.toString().substring(0, this.textFieldMaxLength);
         const display = config?.display ?? true;
 
         if (save) {

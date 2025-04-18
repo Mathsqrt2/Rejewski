@@ -96,13 +96,15 @@ export class RolesService {
         }
     }
 
-    public assignRoleToUser = async (memberId: string, role: Roles): Promise<boolean> => {
+    public assignRoleToMember = async (memberId: string, role: Roles): Promise<boolean> => {
 
+        const startTime: number = Date.now();
         let roleId: string = null;
+
         switch (role) {
             case Roles.MEMBER: roleId = process.env.MEMBER_ROLE_ID;
                 break;
-            case Roles.VERIFIED: roleId = process.env.VERIFIED_ROLE_ID
+            case Roles.VERIFIED: process.env.VERIFIED_ROLE_ID;
                 break;
         }
 
@@ -119,6 +121,41 @@ export class RolesService {
 
             const member = await guild.members.fetch(memberId);
             await member.roles.add(roleId)
+            this.logger.log(`Role ${role} has been successfully assigned.`, { startTime });
+            return true;
+        } catch (error) {
+            this.logger.error(`Failed to assign role ${role} to user.`, { error });
+            return false;
+        }
+    }
+
+
+    public removeMemberRole = async (memberId: string, role: Roles): Promise<boolean> => {
+
+        const startTime: number = Date.now();
+        let roleId: string = null;
+
+        switch (role) {
+            case Roles.MEMBER: roleId = process.env.MEMBER_ROLE_ID;
+                break;
+            case Roles.VERIFIED: roleId = process.env.VERIFIED_ROLE_ID;
+                break;
+        }
+
+        if (!roleId) {
+            this.logger.warn(`Action suspended. Unhandled role type.`);
+            return;
+        }
+
+        try {
+            const guild = this.client.guilds.cache.get(process.env.GUILD_ID);
+            if (!guild) {
+                throw new Error('Guild not found');
+            }
+
+            const member = await guild.members.fetch(memberId);
+            await member.roles.remove(roleId)
+            this.logger.log(`Role ${role} has been removed.`, { startTime });
             return true;
         } catch (error) {
             this.logger.error(`Failed to assign role ${role} to user.`, { error });

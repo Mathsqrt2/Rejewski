@@ -136,7 +136,7 @@ export class BotGateway implements OnApplicationBootstrap {
 
         if (member.isConfirmed && member.acceptedRules) {
 
-            const isRoleAssigned = await this.rolesService.assignRoleToUser(discordMember.id, Roles.VERIFIED);
+            const isRoleAssigned = await this.rolesService.assignRoleToMember(discordMember.id, Roles.VERIFIED);
             isRoleAssigned
                 ? this.logger.log(`User role assigned successfully`, {
                     tag: LogsTypes.PERMISSIONS_GRANTED,

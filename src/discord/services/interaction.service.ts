@@ -53,7 +53,7 @@ export class InteractionService {
             await this.member.save({ ...member, acceptedRules: true });
             if (member.isConfirmed) {
 
-                const isRoleAssigned = await this.rolesService.assignRoleToUser(interaction.user.id, Roles.STUDENT);
+                const isRoleAssigned = await this.rolesService.assignRoleToMember(interaction.user.id, Roles.VERIFIED);
                 isRoleAssigned
                     ? this.logger.log(`User role assigned successfully`, {
                         tag: LogsTypes.PERMISSIONS_GRANTED,

@@ -3,10 +3,11 @@ import { MessagesService } from "src/discord/services/messages.service";
 import { InjectDiscordClient } from "@discord-nestjs/core";
 import { SendMessageDto } from "./dtos/sendMessage.Dto";
 import { ChannelDto } from "./dtos/ChannelDto";
-import { BotResponse } from "@libs/enums";
+import { BotResponse, Roles } from "@libs/enums";
 import { Logger } from "@libs/logger";
 import { Client } from "discord.js";
 import { EmailerService } from "@libs/emailer";
+import { RolesService } from "src/discord/services/roles.service";
 
 @Controller(`api/test`)
 export class TestController {
@@ -14,6 +15,7 @@ export class TestController {
     constructor(
         @InjectDiscordClient() private readonly client: Client,
         private readonly messagesService: MessagesService,
+        private readonly rolesService: RolesService,
         private readonly emailer: EmailerService,
         private readonly logger: Logger,
     ) { }
@@ -57,7 +59,7 @@ export class TestController {
 
     }
 
-    @Get(`:channelId/:messageType`)
+    @Get(`:channelId/:messageType/send`)
     @HttpCode(HttpStatus.ACCEPTED)
     public async sendMessage(
         @Param() params: SendMessageDto,
@@ -87,5 +89,23 @@ export class TestController {
         } catch (error) {
             this.logger.error(`Failed to send forced verification email.`, { error });
         }
+    }
+
+    @Get(`assign/:memberId/:role`)
+    @HttpCode(HttpStatus.OK)
+    public async assignRoleToMember(
+        @Param(`memberId`) memberId: string,
+        @Param(`role`) role: Roles,
+    ): Promise<void> {
+        await this.rolesService.assignRoleToMember(memberId, Roles.MEMBER);
+    }
+
+    @Get(`remove/:memberId/:roleId`)
+    @HttpCode(HttpStatus.OK)
+    public async removeMemberRole(
+        @Param(`memberId`) memberId: string,
+        @Param(`role`) role: Roles,
+    ): Promise<void> {
+        await this.rolesService.removeMemberRole(memberId, Roles.MEMBER)
     }
 }

@@ -139,7 +139,7 @@ export class MessagesService {
             }
 
             if (channel.assignedMember.isConfirmed) {
-                const isRoleAssigned = await this.rolesService.assignRoleToUser(message.author.id, Roles.STUDENT);
+                const isRoleAssigned = await this.rolesService.assignRoleToMember(message.author.id, Roles.VERIFIED);
                 if (isRoleAssigned) {
                     await this.channelsService.removeDiscordChannel(message.channelId);
                     this.logger.log(`User role assigned successfully`, {
@@ -247,7 +247,7 @@ export class MessagesService {
 
             if (request.code.value === messageCode) {
 
-                await this.rolesService.assignRoleToUser(message.author.id, Roles.STUDENT);
+                await this.rolesService.assignRoleToMember(message.author.id, Roles.VERIFIED);
                 await this.channelsService.removeDiscordChannel(message.channelId);
                 await this.email.save({
                     ...request.assignedEmail,

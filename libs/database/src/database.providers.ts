@@ -7,6 +7,7 @@ import { Request } from "./entities/request.entity";
 import { Description } from "./entities/description.entity";
 import { Dictionary } from "./entities/dictionary.entity";
 import { Warn } from "./entities/warn.entity";
+import { LocalRole } from "./entities/role.entity";
 
 
 export const databaseEntities = [
@@ -18,5 +19,6 @@ export const databaseEntities = [
     Request,
     Description,
     Dictionary,
-    Warn
+    Warn,
+    LocalRole,
 ];

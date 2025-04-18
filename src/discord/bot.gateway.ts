@@ -102,16 +102,19 @@ export class BotGateway implements OnApplicationBootstrap {
     @On(Events.GuildRoleCreate)
     public async onGuildRoleCreate(): Promise<void> {
         await this.rolesService.updateRolesInfo();
+        this.logger.debug(`role create called`);
     }
 
     @On(Events.GuildRoleUpdate)
     public async onGuildRoleUpdate(): Promise<void> {
         await this.rolesService.updateRolesInfo();
+        this.logger.debug(`role create updae`);
     }
 
     @On(Events.GuildRoleDelete)
     public async onGuildRoleDelete(): Promise<void> {
         await this.rolesService.updateRolesInfo();
+        this.logger.debug(`role create delete`);
     }
 
     @On(Events.GuildMemberAdd)

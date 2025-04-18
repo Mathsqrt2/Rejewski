@@ -104,7 +104,7 @@ export class RolesService {
         switch (role) {
             case Roles.MEMBER: roleId = process.env.MEMBER_ROLE_ID;
                 break;
-            case Roles.VERIFIED: process.env.VERIFIED_ROLE_ID;
+            case Roles.VERIFIED: roleId = process.env.VERIFIED_ROLE_ID;
                 break;
         }
 

@@ -1,4 +1,4 @@
-import { Controller, Get, HttpCode, HttpStatus, Param } from "@nestjs/common";
+import { BadRequestException, Controller, Get, HttpCode, HttpStatus, Param } from "@nestjs/common";
 import { MessagesService } from "src/discord/services/messages.service";
 import { InjectDiscordClient } from "@discord-nestjs/core";
 import { SendMessageDto } from "./dtos/sendMessage.Dto";
@@ -95,17 +95,29 @@ export class TestController {
     @HttpCode(HttpStatus.OK)
     public async assignRoleToMember(
         @Param(`memberId`) memberId: string,
-        @Param(`role`) role: Roles,
+        @Param(`role`) role: string,
     ): Promise<void> {
-        await this.rolesService.assignRoleToMember(memberId, Roles.MEMBER);
+
+        const roleKey = Object.keys(Roles).find(key => key === role.toUpperCase());
+        if (!roleKey) {
+            throw new BadRequestException(`Specified role doesn't exist`);
+        }
+
+        await this.rolesService.assignRoleToMember(memberId, Roles[roleKey]);
     }
 
-    @Get(`remove/:memberId/:roleId`)
+    @Get(`remove/:memberId/:role`)
     @HttpCode(HttpStatus.OK)
     public async removeMemberRole(
         @Param(`memberId`) memberId: string,
-        @Param(`role`) role: Roles,
+        @Param(`role`) role: string,
     ): Promise<void> {
-        await this.rolesService.removeMemberRole(memberId, Roles.MEMBER)
+
+        const roleKey = Object.keys(Roles).find(key => key === role.toUpperCase());
+        if (!roleKey) {
+            throw new BadRequestException(`Specified role doesn't exist`);
+        }
+
+        await this.rolesService.removeMemberRole(memberId, Roles[roleKey])
     }
 }

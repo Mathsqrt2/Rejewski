@@ -7,13 +7,15 @@ import {
 import { ChannelsService } from "./services/channels.service";
 import { MessagesService } from "./services/messages.service";
 import { ContentService } from "./services/content.service";
-import { AppSettingsDto } from "./dtos/app.settings.dto";
+import { AppSettingsDto } from "./dtos/app-settings.dto";
 import { DictionaryDto } from "./dtos/dictionary.dto";
 import { InjectRepository } from "@nestjs/typeorm";
 import { AppConfig } from "@libs/types/settings";
 import { PhraseDto } from "./dtos/phrase.dto";
 import { Repository } from "typeorm";
 import { Content } from "src/app.content";
+import { AppServiceDto } from "./dtos/app-service.dto";
+import { CronNameDto } from "./dtos/cron-name.dto";
 
 @Controller(`api`)
 export class DiscordController {
@@ -37,7 +39,7 @@ export class DiscordController {
     public setAppConfiguration(
         @Body() body: AppSettingsDto
     ): void {
-        this.settings.app = body.settings;
+        this.settings.app = body;
     }
 
     @Get(`blacklist`)
@@ -133,7 +135,7 @@ export class DiscordController {
     @Get(`update/:service`)
     @HttpCode(HttpStatus.ACCEPTED)
     public async forceUpdateServiceData(
-        @Param(`service`) service: string
+        @Param() params: AppServiceDto
     ): Promise<void> {
 
         let appService: string;
@@ -142,7 +144,9 @@ export class DiscordController {
 
     @Post(`cron/update/:cronName`)
     @HttpCode(HttpStatus.ACCEPTED)
-    public async updateCron() {
+    public async updateCron(
+        @Param() params: CronNameDto
+    ) {
 
     }
 

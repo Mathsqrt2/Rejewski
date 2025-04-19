@@ -1,11 +1,12 @@
-import { InjectDiscordClient } from "@discord-nestjs/core";
-import { LocalRole } from "@libs/database/entities/role.entity";
-import { Roles } from "@libs/enums";
-import { Logger } from "@libs/logger";
-import { Injectable } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
 import { Client, Guild, PermissionFlagsBits, Role } from "discord.js";
+import { LocalRole } from "@libs/database/entities/role.entity";
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { InjectDiscordClient } from "@discord-nestjs/core";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Content } from "src/app.content";
+import { Logger } from "@libs/logger";
 import { Repository } from "typeorm";
+import { Roles } from "@libs/enums";
 
 @Injectable()
 export class RolesService {
@@ -40,7 +41,7 @@ export class RolesService {
             });
 
         } catch (error) {
-            this.logger.error(`Failed to update ${newRole.name} params.`, { startTime });
+            this.logger.error(Content.error.failedToUpdate(newRole.name), { startTime });
         }
 
     }
@@ -52,7 +53,7 @@ export class RolesService {
 
             const guild: Guild = this.client.guilds.cache.get(process.env.GUILD_ID);
             if (!guild) {
-                this.logger.warn(`Failed to find specified guild.`);
+                this.logger.warn(Content.exceptions.notFound(`Guild`));
                 return;
             }
 
@@ -88,11 +89,11 @@ export class RolesService {
                 isDeleted: true,
             })))
 
-            this.logger.log(`Roles refreshed successfully.`, { startTime });
+            this.logger.log(Content.log.dataRefreshed(`roles`), { startTime });
             return this.discordRoles;
 
         } catch (error) {
-            this.logger.error(`Failed to update roles info.`);
+            this.logger.error(Content.error.failedToRefreshData(`roles`));
         }
     }
 
@@ -109,22 +110,26 @@ export class RolesService {
         }
 
         if (!roleId) {
-            this.logger.warn(`Action suspended. Unhandled role type.`);
+            this.logger.warn(Content.warn.actionSuspended(`role`));
             return;
         }
 
         try {
             const guild = this.client.guilds.cache.get(process.env.GUILD_ID);
             if (!guild) {
-                throw new Error('Guild not found');
+                throw new NotFoundException(Content.exceptions.notFound(`Guild`));
             }
 
             const member = await guild.members.fetch(memberId);
+            if (!member) {
+                throw new NotFoundException(Content.exceptions.notFound(`Member`));
+            }
+
             await member.roles.add(roleId)
-            this.logger.log(`Role ${role} has been successfully assigned.`, { startTime });
+            this.logger.log(Content.log.roleHasBeenAssigned(role), { startTime });
             return true;
         } catch (error) {
-            this.logger.error(`Failed to assign role ${role} to user.`, { error });
+            this.logger.error(Content.error.failedToAssignRole(role), { error });
             return false;
         }
     }
@@ -143,22 +148,26 @@ export class RolesService {
         }
 
         if (!roleId) {
-            this.logger.warn(`Action suspended. Unhandled role type.`);
+            this.logger.warn(Content.warn.actionSuspended(`role`));
             return;
         }
 
         try {
             const guild = this.client.guilds.cache.get(process.env.GUILD_ID);
             if (!guild) {
-                throw new Error('Guild not found');
+                throw new NotFoundException(Content.exceptions.notFound(`Guild`));
             }
 
             const member = await guild.members.fetch(memberId);
+            if (!member) {
+                throw new NotFoundException(Content.exceptions.notFound(`Member`))
+            }
+
             await member.roles.remove(roleId)
-            this.logger.log(`Role ${role} has been removed.`, { startTime });
+            this.logger.log(Content.log.roleHasBeenRemoved(role), { startTime });
             return true;
         } catch (error) {
-            this.logger.error(`Failed to assign role ${role} to user.`, { error });
+            this.logger.error(Content.error.failedToRemoveRole(role), { error });
             return false;
         }
     }

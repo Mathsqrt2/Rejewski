@@ -1,4 +1,3 @@
-import { VerificationService } from '@libs/verification';
 import { MailerService } from '@nestjs-modules/mailer';
 import CodeTemplate from './templates/code.template';
 import { render } from '@react-email/components';
@@ -52,11 +51,9 @@ export class EmailerService {
             });
 
         } catch (error) {
-            this.logger.error(`Failed to send email.`, { error, startTime });
+            this.logger.error(Content.error.failedToSendEmail(), { error, startTime });
         }
 
-
     }
-
 
 }

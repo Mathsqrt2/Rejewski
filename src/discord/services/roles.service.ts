@@ -6,7 +6,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Content } from "src/app.content";
 import { Logger } from "@libs/logger";
 import { Repository } from "typeorm";
-import { Roles } from "@libs/enums";
+import { LogsTypes, Roles } from "@libs/enums";
 
 @Injectable()
 export class RolesService {
@@ -126,10 +126,14 @@ export class RolesService {
             }
 
             await member.roles.add(roleId)
-            this.logger.log(Content.log.roleHasBeenAssigned(role), { startTime });
+            this.logger.log(Content.log.roleHasBeenAssigned(role),
+                { startTime, tag: LogsTypes.PERMISSIONS_GRANTED, }
+            );
             return true;
         } catch (error) {
-            this.logger.error(Content.error.failedToAssignRole(role), { error, startTime });
+            this.logger.error(Content.error.failedToAssignRole(role),
+                { error, startTime, tag: LogsTypes.PERMISSIONS_FAIL, }
+            );
             return false;
         }
     }

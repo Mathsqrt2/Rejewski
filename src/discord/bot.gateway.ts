@@ -1,6 +1,7 @@
 import { Cron, CronExpression, SchedulerRegistry } from "@nestjs/schedule";
 import { Description } from "@libs/database/entities/description.entity";
 import { InjectDiscordClient, On, Once } from "@discord-nestjs/core";
+import { Injectable, OnApplicationBootstrap } from "@nestjs/common";
 import { DiscordEvents } from "@libs/enums/discord.events.enum";
 import { MessagesService } from "./services/messages.service";
 import { ChannelsService } from "./services/channels.service";
@@ -12,15 +13,16 @@ import { EventEmitter2 } from "@nestjs/event-emitter";
 import { DiscordMember } from "@libs/types/discord";
 import { InjectRepository } from "@nestjs/typeorm";
 import { SettingsService } from "@libs/settings";
-import { Injectable, OnApplicationBootstrap } from "@nestjs/common";
-import { Logger } from "@libs/logger";
 import {
     ActivityType, ButtonInteraction, Client,
     Events, Message,
     Role,
 } from "discord.js";
-import { SHA512 } from 'crypto-js';
+import { Logger } from "@libs/logger";
 import { Repository } from "typeorm";
+import { SHA512 } from 'crypto-js';
+import { Content } from "src/app.content";
+import { CronJobs } from "@libs/enums/cron.enum";
 
 @Injectable()
 export class BotGateway implements OnApplicationBootstrap {
@@ -49,7 +51,7 @@ export class BotGateway implements OnApplicationBootstrap {
         this.rolesService.updateRolesInfo();
     }
 
-    @Cron(CronExpression.EVERY_5_MINUTES, { name: `changeCurrentBotActivity`, disabled: true })
+    @Cron(CronExpression.EVERY_5_MINUTES, { name: CronJobs.CHANGE_CURRENT_BOT_ACTIVITY, disabled: true })
     public changeCurrentBotActivity(): void {
 
         const index = (this.lastStatusUsed++ % this.botStatuses.length);
@@ -70,28 +72,28 @@ export class BotGateway implements OnApplicationBootstrap {
             this.botStatuses = descriptions.map(description => description.value);
         }
 
-        const initialStatus = this.botStatuses.at(0) || `✅ W czym mogę służyć?`;
+        const initialStatus = this.botStatuses.at(0) || Content.defaults.status();
 
         this.client.user.setActivity({
             name: initialStatus,
             type: ActivityType.Custom,
         })
 
-        const cronJob = this.cron.getCronJob(`changeCurrentBotActivity`);
+        const cronJob = this.cron.getCronJob(CronJobs.CHANGE_CURRENT_BOT_ACTIVITY);
         if (this.botStatuses.length > 1) {
             cronJob.start();
-            this.logger.log(`Activity change cron started.`, { startTime });
+            this.logger.log(Content.log.cronStarted(`Activity change`), { startTime });
         }
 
         try {
 
-            this.logger.log(`Application ${this.settings.app.name} (${this.client.application.id}) has launched successfully.`, {
+            this.logger.log(Content.log.appLaunched(this.settings.app.name, this.client.application.id), {
                 tag: LogsTypes.INTERNAL_ACTION,
                 startTime,
             })
 
         } catch (error) {
-            this.logger.error(`Failed to launch application.`, {
+            this.logger.error(Content.error.failedToLaunchApplication(), {
                 tag: LogsTypes.INTERNAL_ACTION_FAIL,
                 error,
                 startTime,
@@ -122,7 +124,7 @@ export class BotGateway implements OnApplicationBootstrap {
         const startTime: number = Date.now();
         const [member, isMemberNew] = await this.memberService.saveMember(discordMember.id);
         if (!member) {
-            this.logger.error(`Failed to validate user.`, {
+            this.logger.error(Content.error.failedToValidateMember(), {
                 tag: LogsTypes.INTERNAL_ACTION_FAIL,
                 startTime
             });
@@ -130,28 +132,19 @@ export class BotGateway implements OnApplicationBootstrap {
         }
 
         if (this.settings.app.state.mode === `DEVELOPMENT` && !this.memberService.isAccountTesting(discordMember.id)) {
-            this.logger.warn(`Real user joined to the server when bot was in development mode. Action suspended.`, { startTime })
+            this.logger.warn(Content.warn.actionSuspended(`realUserMessageInDevMode`), { startTime })
             return;
         }
 
         if (member.isConfirmed && member.acceptedRules) {
 
-            const isRoleAssigned = await this.rolesService.assignRoleToMember(discordMember.id, Roles.VERIFIED);
-            isRoleAssigned
-                ? this.logger.log(`User role assigned successfully`, {
-                    tag: LogsTypes.PERMISSIONS_GRANTED,
-                    startTime
-                })
-                : this.logger.error(`Failed to assign role.`, {
-                    tag: LogsTypes.PERMISSIONS_FAIL,
-                    startTime
-                });
+            await this.rolesService.assignRoleToMember(discordMember.id, Roles.VERIFIED);
             return;
         }
 
         const channel = await this.channelsService.showValidationChannelToUser(discordMember);
         if (!channel) {
-            this.logger.error(`Failed to find validation channel.`, {
+            this.logger.error(Content.error.failedToFindChannel(`validation`), {
                 tag: LogsTypes.INTERNAL_ACTION_FAIL,
                 startTime
             }
@@ -195,7 +188,7 @@ export class BotGateway implements OnApplicationBootstrap {
 
         const startTime: number = Date.now();
         if (message.author.bot) {
-            this.logger.warn(`Message handling canceled. Author is bot.`, {
+            this.logger.warn(Content.warn.messageAuthorIsBot(), {
                 tag: LogsTypes.INVALID_PAYLOAD,
                 startTime
             });
@@ -204,7 +197,7 @@ export class BotGateway implements OnApplicationBootstrap {
 
         const discordIdHash = SHA512(message.author.id).toString();
         if (!message?.channel) {
-            this.logger.error(`Invalid message metadata for ${discordIdHash} message.`, {
+            this.logger.error(Content.error.invalidMetadata(discordIdHash), {
                 tag: LogsTypes.INVALID_PAYLOAD,
                 startTime
             });
@@ -214,12 +207,12 @@ export class BotGateway implements OnApplicationBootstrap {
         if (this.settings.app.state.mode === `DEVELOPMENT`) {
 
             if (!this.memberService.isAccountTesting(message.author.id)) {
-                this.logger.warn(`Message was sent by real user in development mode. Action suspended.`, { startTime })
+                this.logger.warn(Content.warn.actionSuspended(`realUserMessageInDevMode`), { startTime })
                 return;
             }
 
             if (!this.channelsService.isChannelTesting(message.channelId)) {
-                this.logger.warn(`Message was sent on real channel in development mode. Action suspended.`, { startTime })
+                this.logger.warn(Content.warn.actionSuspended(`messageOnRealChannelInDevMode`), { startTime })
                 return;
             }
         }
@@ -228,7 +221,7 @@ export class BotGateway implements OnApplicationBootstrap {
 
             const discordChannel = await this.channelsService.findDiscordChannelById(message?.channelId);
             if (!discordChannel) {
-                this.logger.warn(`Failed to handle message. Unknown channel.`, {
+                this.logger.warn(Content.error.failedToHandleMessage(`Unknown channel`), {
                     tag: LogsTypes.UNKNOWN_CHANNEL,
                     startTime
                 });
@@ -237,7 +230,7 @@ export class BotGateway implements OnApplicationBootstrap {
 
             const channelType = await this.channelsService.findChannelType(message.channelId);
             if (!channelType) {
-                this.logger.warn(`Failed to handle message. Unknown channel type.`, {
+                this.logger.warn(Content.error.failedToHandleMessage(`Unknown channel type`), {
                     tag: LogsTypes.UNKNOWN_CHANNEL,
                     startTime
                 });
@@ -246,13 +239,13 @@ export class BotGateway implements OnApplicationBootstrap {
 
             const evnetName = `${channelType?.toUpperCase()}_MESSAGE`
             await this.eventEmitter.emitAsync(evnetName, message);
-            this.logger.log(`Event ${evnetName} emitted successfully.`, {
+            this.logger.log(Content.log.eventEmitted(evnetName), {
                 tag: LogsTypes.EVENT_EMITTED,
                 startTime
             });
 
         } catch (error) {
-            this.logger.error(`Failed to handle user message.`, {
+            this.logger.error(Content.error.failedToHandleMessage(), {
                 tag: LogsTypes.INTERNAL_ACTION_FAIL,
                 error,
                 startTime
@@ -271,12 +264,12 @@ export class BotGateway implements OnApplicationBootstrap {
         if (this.settings.app.state.mode === `DEVELOPMENT`) {
 
             if (!this.memberService.isAccountTesting(interaction.user.id)) {
-                this.logger.warn(`Interaction happened with real user in development mode. Action suspended.`, { startTime })
+                this.logger.warn(Content.warn.actionSuspended(`realUserInteractionInDevMode`), { startTime })
                 return;
             }
 
             if (!this.channelsService.isChannelTesting(interaction.channelId)) {
-                this.logger.warn(`Interaction happened on real channel in development mode. Action suspended.`, { startTime })
+                this.logger.warn(Content.warn.actionSuspended(`realChannelInteractionInDevMode`), { startTime })
                 return;
             }
         }
@@ -285,7 +278,7 @@ export class BotGateway implements OnApplicationBootstrap {
             try {
                 await this.eventEmitter.emitAsync(AppEvents.RulesAccept, interaction);
             } catch (error) {
-                this.logger.error(`Failed to emit rules accept event.`, { error, startTime });
+                this.logger.error(Content.error.failedToEmitEvent(), { error, startTime });
             }
             return;
         }

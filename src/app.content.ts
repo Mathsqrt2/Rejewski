@@ -45,7 +45,12 @@ export class Content {
         codeHasBeenSentToSpecifiedEmail: (email: string) => `Właśnie wysłałem wiadomość z kodem na Twój email: "${email}", podaj mi go aby uzyskać dostęp do serwera.`,
         codeIsStillActive: (): string => `Twój poprzedni kod jest wciąż aktualny, wysłałem go ponownie na Twojego maila. Jeżeli go nie widzisz, sprawdź w spamie.`,
         codeAlreadyExpired: (): string => `Twój ostatni kod już wygasł, podaj ponownie maila, a wyślę Ci nowy`,
+        incorrectCode: (): string => `Podany kod jest nieprawidłowy, spróbuj ponownie:`,
     };
+
+    public static defaults: ContentStorage = {
+        status: (): string => `✅ W czym mogę służyć?`,
+    }
 
     public static interface: ContentStorage = {
         rulesAcceptButton: (): string => `akceptuję`,
@@ -54,24 +59,44 @@ export class Content {
 
     public static error: ContentStorage = {
         failedToDisplayInviteMessage: (): string => `Failed to display invite message.`,
-        failedToAssignRole: (role: string): string => `Failed to assign role ${role} to user.`,
-        failedToRemoveRole: (role: string): string => `Failed to remove user role ${role}.`,
+        failedToAssignRole: (role: string): string => `Failed to assign role ${role} to member.`,
+        failedToRemoveRole: (role: string): string => `Failed to remove member role ${role}.`,
         failedToRefreshData: (subject: string): string => `Failed to update ${subject.toLowerCase()} data.`,
         failedToUpdate: (subject: string): string => `Failed to update ${subject}.`,
         notSendable: (): string => `Specified channel is not sendable.`,
         emptyMessage: (type: string): string => `Message from template: "${type}" is empty.`,
         failedToSendButton: (): string => `Failed to send rules button.`,
+        failedToSendEmail: (): string => `Failed to send email.`,
+        failedToSaveLog: (type: string): string => `Failed to save ${type || `log`} in database.`,
+        failedToShowChannel: (): string => `Failed to show validation channel to member.`,
+        failedToDiscoverChannel: (hash: string): string => `Failed to discorver channel for member ${hash || ``}`,
+        failedToHandleInteraction: (): string => `Failed to handle interaction.`,
+        failedToValidatePresence: (): string => `Failed to validate member presence.`,
+        failedToHandlePrivateMessage: (): string => `Failed to handle private channel message.`,
+        failedToLaunchApplication: (): string => `Failed to launch application.`,
+        failedToValidateMember: (): string => `Failed to validate user.`,
+        failedToFindChannel: (type?: string): string => `Failed to find${type ? ` ${type}` : ``} channel.`,
+        invalidMetadata: (hash?: string): string => `Invalid message metadata for${hash ? ` ${hash}` : ``} message.`,
+        failedToHandleMessage: (reason?: string) => `Failed to handle message${reason ? `. ${reason}` : ``}.`,
+        failedToEmitEvent: (): string => `Failed to emit rules accept event.`,
     }
 
     private static actionSuspendedSubject = {
         role: ` Unhandled role type.`,
         missingMembers: ` Private channel has no assigned members.`,
         unpermittedUsage: ` Someone else is using client channel.`,
+        unpermittedInteraction: ` Interaction member is not channel owner.`,
+        realUserMessageInDevMode: ` Message was sent by real user in development mode.`,
+        realUserJoinedInDevMode: ` Real user joined to the server when bot was in development mode.`,
+        messageOnRealChannelInDevMode: ` Message was sent on real channel in development mode.`,
+        realUserInteractionInDevMode: ` Interaction happened with real user in development mode.`,
+        realChannelInteractionInDevMode: ` Interaction happened on real channel in development mode.`
     }
 
     public static warn: ContentStorage = {
         actionSuspended: (reason?: ActionSuspendedSubject): string => `Action suspended.${reason ? this.actionSuspendedSubject[reason] || `` : ``}`,
         messageDoesntExist: (): string => `Original message doesn't exist`,
+        messageAuthorIsBot: (): string => `Message handling canceled. Author is bot.`,
     }
 
     public static log: ContentStorage = {
@@ -79,10 +104,16 @@ export class Content {
         roleHasBeenAssigned: (role: string): string => `Role ${role} has been successfully assigned.`,
         dataRefreshed: (subject: string): string => `${this.uppercaseFirst(subject)} refreshed successfully.`,
         messageSent: (): string => `Message sent successfully.`,
+        memberJoined: (hash: string): string => `New member ${hash} joined to the server.`,
+        memberFound: (hash: string): string => `Member ${hash} found in database.`,
+        cronStarted: (name: string): string => `${this.uppercaseFirst(name)} cron started.`,
+        appLaunched: (name: string, id: string) => `Application ${name} (${id}) has launched successfully.`,
+        eventEmitted: (name?: string) => `Event${name ? ` ${name}` : ``} emitted successfully.`,
     }
 
     public static exceptions: ContentStorage = {
         notFound: (subject?: NotFoundSubject) => `Specified ${subject.toLowerCase() || `property`} not found.`
+
     }
 
 }

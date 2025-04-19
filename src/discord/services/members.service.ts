@@ -1,4 +1,4 @@
-import { Injectable, OnApplicationBootstrap } from '@nestjs/common';
+import { Injectable, NotFoundException, OnApplicationBootstrap } from '@nestjs/common';
 import { Client, Guild, PermissionsBitField } from 'discord.js';
 import { Member } from '@libs/database/entities/member.entity';
 import { InjectDiscordClient } from '@discord-nestjs/core';
@@ -7,6 +7,7 @@ import { LogsTypes } from '@libs/enums';
 import { Logger } from '@libs/logger';
 import { Repository } from 'typeorm';
 import { SHA512 } from 'crypto-js'
+import { Content } from 'src/app.content';
 
 @Injectable()
 export class MembersService implements OnApplicationBootstrap {
@@ -28,7 +29,7 @@ export class MembersService implements OnApplicationBootstrap {
         const startTime: number = Date.now();
         const guild: Guild = this.client.guilds.cache.get(process.env.GUILD_ID);
         if (!guild) {
-            throw new Error(`Failed to find specified guild.`);
+            throw new NotFoundException(Content.exceptions.notFound(`Guild`));
         }
 
         const discordMembers = await guild.members.fetch();
@@ -46,7 +47,7 @@ export class MembersService implements OnApplicationBootstrap {
             return this.member.save({ discordIdHash, isAdmin, isConfirmed });
         }));
 
-        this.logger.log(`Members refreshed successfully.`, { startTime });
+        this.logger.log(Content.log.dataRefreshed(`Members`), { startTime });
         return true;
     }
 
@@ -66,7 +67,7 @@ export class MembersService implements OnApplicationBootstrap {
                 member = await this.member.save({ discordIdHash });
                 isMemberNew = true;
                 this.members.push(member);
-                this.logger.log(`New member ${discordIdHash} joined to the server.`, {
+                this.logger.log(Content.log.memberJoined(discordIdHash), {
                     tag: LogsTypes.USER_JOINED,
                     startTime
                 }
@@ -74,7 +75,7 @@ export class MembersService implements OnApplicationBootstrap {
 
             } else {
 
-                this.logger.log(`Member ${discordIdHash} found in database.`, {
+                this.logger.log(Content.log.memberFound(discordIdHash), {
                     tag: LogsTypes.DATABASE_READ,
                     startTime
                 }
@@ -86,7 +87,7 @@ export class MembersService implements OnApplicationBootstrap {
 
         } catch (error) {
 
-            this.logger.error(`Failed to validate member presence.`, {
+            this.logger.error(Content.error.failedToValidatePresence(), {
                 tag: LogsTypes.DATABASE_FAIL,
                 error,
                 startTime

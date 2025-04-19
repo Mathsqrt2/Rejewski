@@ -18,6 +18,7 @@ import {
 } from '@libs/types/discord';
 import { LogsTypes } from '@libs/enums';
 import { Logger } from '@libs/logger';
+import { Content } from 'src/app.content';
 
 @Injectable()
 export class ChannelsService implements OnApplicationBootstrap {
@@ -40,7 +41,7 @@ export class ChannelsService implements OnApplicationBootstrap {
         const startTime: number = Date.now();
         const guild: Guild = this.client.guilds.cache.get(process.env.GUILD_ID);
         if (!guild) {
-            throw new Error(`Failed to find specified guild.`);
+            throw new NotFoundException(Content.exceptions.notFound(`Guild`));
         }
 
         const discordChannels = await guild.channels.fetch();
@@ -64,7 +65,7 @@ export class ChannelsService implements OnApplicationBootstrap {
                 discordChannel?.parentId === process.env.PRIVATE_PARENT
         })));
 
-        this.logger.log(`Channels refreshed successfully.`, { startTime });
+        this.logger.log(Content.log.dataRefreshed(`Channels`), { startTime });
         return true;
     }
 
@@ -77,7 +78,7 @@ export class ChannelsService implements OnApplicationBootstrap {
 
             const member: Member = await this.member.findOneBy({ discordIdHash });
             if (!member) {
-                throw new NotFoundException(`Member not found.`)
+                throw new NotFoundException(Content.exceptions.notFound(`Member`))
             }
 
             let channel: Channel = await this.channel.findOneBy({ memberId: member.id, isDeleted: false });
@@ -89,7 +90,7 @@ export class ChannelsService implements OnApplicationBootstrap {
 
         } catch (error) {
 
-            this.logger.error(`Failed to show validation channel to user.`, {
+            this.logger.error(Content.error.failedToShowChannel(), {
                 tag: LogsTypes.VALIDATION_FAIL,
                 error,
                 startTime
@@ -108,12 +109,12 @@ export class ChannelsService implements OnApplicationBootstrap {
         try {
 
             if (!guild) {
-                throw new Error(`Failed to find specified guild.`);
+                throw new NotFoundException(Content.exceptions.notFound(`Guild`));
             }
 
             const member = await this.member.findOneBy({ discordIdHash });
             if (!member) {
-                throw new Error(`Failed to find specified member ${discordIdHash}`);
+                throw new NotFoundException(Content.exceptions.notFound(`Member`));
             }
 
             const channel: Channel = await this.channel.findOne({
@@ -124,7 +125,7 @@ export class ChannelsService implements OnApplicationBootstrap {
             if (!discordChannel) {
                 this.channel.save({ ...channel, isDeleted: true });
                 this.channels = this.channels.filter(channel => channel.discordId !== discordChannel.id);
-                this.logger.error(`Failed to discorver channel for user ${discordChannel.name}`, {
+                this.logger.error(Content.error.failedToDiscoverChannel(discordIdHash), {
                     tag: LogsTypes.INTERNAL_ACTION_FAIL,
                     startTime
                 });
@@ -142,7 +143,7 @@ export class ChannelsService implements OnApplicationBootstrap {
 
         } catch (error) {
 
-            this.logger.error(`Failed to discover channel for user ${discordIdHash}`, {
+            this.logger.error(Content.error.failedToDiscoverChannel(discordIdHash), {
                 tag: LogsTypes.INTERNAL_ACTION_FAIL,
                 error,
                 startTime,

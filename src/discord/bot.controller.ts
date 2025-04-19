@@ -4,16 +4,16 @@ import {
     Body, Controller, Delete, Get, HttpCode,
     HttpStatus, NotFoundException, Param, Post
 } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
-import { AppSettingsDto } from "./dtos/app.settings.dto";
-import { AppConfig } from "@libs/types/settings";
-import { DictionaryDto } from "./dtos/dictionary.dto";
-import { PhraseDto } from "./dtos/phrase.dto";
-import { ContentService } from "./services/content.service";
-import { MessagesService } from "./services/messages.service";
 import { ChannelsService } from "./services/channels.service";
-import { CreatePhraseDto } from "./dtos/create-phrase.dto";
+import { MessagesService } from "./services/messages.service";
+import { ContentService } from "./services/content.service";
+import { AppSettingsDto } from "./dtos/app.settings.dto";
+import { DictionaryDto } from "./dtos/dictionary.dto";
+import { InjectRepository } from "@nestjs/typeorm";
+import { AppConfig } from "@libs/types/settings";
+import { PhraseDto } from "./dtos/phrase.dto";
+import { Repository } from "typeorm";
+import { Content } from "src/app.content";
 
 @Controller(`api`)
 export class DiscordController {
@@ -45,7 +45,7 @@ export class DiscordController {
     public async getBlacklistedPhrases(): Promise<Dictionary[]> {
         const phrases = await this.dictionary.find({ where: { blackList: true } });
         if (!phrases) {
-            throw new NotFoundException(`No phrases found.`);
+            throw new NotFoundException(Content.exceptions.notFound(`Phrases`));
         }
 
         return phrases
@@ -90,7 +90,7 @@ export class DiscordController {
     public async getWhitelistedPhrases(): Promise<Dictionary[]> {
         const phrases = await this.dictionary.find({ where: { whiteList: true } });
         if (!phrases) {
-            throw new NotFoundException(`No phrases found.`);
+            throw new NotFoundException(Content.exceptions.notFound(`Phrases`));
         }
 
         this.content.updateData();
@@ -137,10 +137,6 @@ export class DiscordController {
     ): Promise<void> {
 
         let appService: string;
-
-
-
-
 
     }
 

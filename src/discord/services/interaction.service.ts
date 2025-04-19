@@ -1,6 +1,6 @@
 import { AppEvents, BotResponse, LogsTypes, Roles } from "@libs/enums";
-import { ButtonInteraction, MessageFlags } from "discord.js";
 import { Member } from "@libs/database/entities/member.entity";
+import { ButtonInteraction, MessageFlags } from "discord.js";
 import { MessagesService } from "./messages.service";
 import { InjectRepository } from "@nestjs/typeorm";
 import { OnEvent } from "@nestjs/event-emitter";
@@ -34,13 +34,13 @@ export class InteractionService {
             });
 
             if (!member) {
-                this.logger.warn(`Member doesn't exist`, { startTime });
+                this.logger.warn(Content.exceptions.notFound(`Member`), { startTime });
                 await interaction.deferUpdate();
                 return;
             }
 
             if (!member.channels.some(channel => channel.discordId === interaction.channelId)) {
-                this.logger.warn(`Action suspended. Interaction member is not channel owner.`, { startTime })
+                this.logger.warn(Content.warn.actionSuspended(`unpermittedInteraction`), { startTime })
                 await interaction.deferUpdate();
                 return;
             }
@@ -53,16 +53,7 @@ export class InteractionService {
             await this.member.save({ ...member, acceptedRules: true });
             if (member.isConfirmed) {
 
-                const isRoleAssigned = await this.rolesService.assignRoleToMember(interaction.user.id, Roles.VERIFIED);
-                isRoleAssigned
-                    ? this.logger.log(`User role assigned successfully`, {
-                        tag: LogsTypes.PERMISSIONS_GRANTED,
-                        startTime
-                    })
-                    : this.logger.error(`Failed to assign role.`, {
-                        tag: LogsTypes.PERMISSIONS_FAIL,
-                        startTime
-                    });
+                await this.rolesService.assignRoleToMember(interaction.user.id, Roles.VERIFIED);
                 return;
             }
 
@@ -75,7 +66,7 @@ export class InteractionService {
 
         } catch (error) {
 
-            this.logger.error(`Failed to handle interaction.`, { startTime, error });
+            this.logger.error(Content.error.failedToHandleInteraction(), { startTime, error });
             await interaction.deferUpdate();
 
         }

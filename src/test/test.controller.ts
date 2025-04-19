@@ -1,13 +1,17 @@
-import { BadRequestException, Controller, Get, HttpCode, HttpStatus, Param } from "@nestjs/common";
 import { MessagesService } from "src/discord/services/messages.service";
+import { RolesService } from "src/discord/services/roles.service";
+import {
+    BadRequestException, Controller, Get, HttpCode,
+    HttpStatus, NotFoundException, Param
+} from "@nestjs/common";
 import { InjectDiscordClient } from "@discord-nestjs/core";
 import { SendMessageDto } from "./dtos/sendMessage.Dto";
-import { ChannelDto } from "./dtos/ChannelDto";
 import { BotResponse, Roles } from "@libs/enums";
+import { ChannelDto } from "./dtos/ChannelDto";
+import { EmailerService } from "@libs/emailer";
+import { Content } from "src/app.content";
 import { Logger } from "@libs/logger";
 import { Client } from "discord.js";
-import { EmailerService } from "@libs/emailer";
-import { RolesService } from "src/discord/services/roles.service";
 
 @Controller(`api/test`)
 export class TestController {
@@ -36,7 +40,7 @@ export class TestController {
                 this.logger.error(`Failed to send ${response}.`, { error, startTime });
             }
         }
-        this.logger.log(`Messages sent successfully.`, { startTime });
+        this.logger.log(Content.log.messageSent(), { startTime });
     }
 
     @Get(`:channelId/button`)
@@ -51,7 +55,7 @@ export class TestController {
         try {
 
             await this.messagesService.sendRulesButton(channelId);
-            this.logger.log(`Response sent successfully`, { startTime });
+            this.logger.log(Content.log.messageSent(), { startTime });
 
         } catch (error) {
             this.logger.error(`Failed to force sending message with ${params}`, { error, startTime })
@@ -71,7 +75,7 @@ export class TestController {
         try {
 
             await this.messagesService.sendMessage(channelId, messageType);
-            this.logger.log(`Response sent successfully`, { startTime });
+            this.logger.log(Content.log.messageSent(), { startTime });
 
         } catch (error) {
             this.logger.error(`Failed to force sending message with ${params}`, { error, startTime })
@@ -82,12 +86,14 @@ export class TestController {
     @Get(`email`)
     @HttpCode(HttpStatus.OK)
     public async sendEmail() {
+
+        const startTime: number = Date.now();
         try {
 
             await this.emailer.sendVerificationEmailTo(process.env.TEST_EMAIL, process.env.TEST_CODE);
 
         } catch (error) {
-            this.logger.error(`Failed to send forced verification email.`, { error });
+            this.logger.error(`Failed to send forced verification email.`, { error, startTime });
         }
     }
 
@@ -100,7 +106,7 @@ export class TestController {
 
         const roleKey = Object.keys(Roles).find(key => key === role.toUpperCase());
         if (!roleKey) {
-            throw new BadRequestException(`Specified role doesn't exist`);
+            throw new NotFoundException(Content.exceptions.notFound(`Role`));
         }
 
         await this.rolesService.assignRoleToMember(memberId, Roles[roleKey]);
@@ -115,7 +121,7 @@ export class TestController {
 
         const roleKey = Object.keys(Roles).find(key => key === role.toUpperCase());
         if (!roleKey) {
-            throw new BadRequestException(`Specified role doesn't exist`);
+            throw new BadRequestException(Content.exceptions.notFound(`Role`));
         }
 
         await this.rolesService.removeMemberRole(memberId, Roles[roleKey])

@@ -142,15 +142,6 @@ export class MessagesService {
                 const isRoleAssigned = await this.rolesService.assignRoleToMember(message.author.id, Roles.VERIFIED);
                 if (isRoleAssigned) {
                     await this.channelsService.removeDiscordChannel(message.channelId);
-                    this.logger.log(Content.log.roleHasBeenAssigned(Roles.VERIFIED), {
-                        tag: LogsTypes.PERMISSIONS_GRANTED,
-                        startTime
-                    })
-                } else {
-                    this.logger.error(Content.error.failedToAssignRole(Roles.VERIFIED), {
-                        tag: LogsTypes.PERMISSIONS_FAIL,
-                        startTime
-                    });
                 }
                 return;
             }
@@ -258,11 +249,11 @@ export class MessagesService {
                 })
 
             } else {
-                message.reply({ content: `Podany kod jest nieprawidłowy, spróbuj ponownie:` });
+                message.reply({ content: Content.messages.incorrectCode() });
             }
 
         } catch (error) {
-            this.logger.error(`Failed to handle private channel message.`, { error, startTime });
+            this.logger.error(Content.error.failedToHandlePrivateMessage(), { error, startTime });
         }
 
     }

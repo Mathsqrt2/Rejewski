@@ -4,6 +4,7 @@ import { Log } from '@libs/database/entities/log.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { SettingsService } from '@libs/settings';
 import { Repository } from 'typeorm';
+import { Content } from 'src/app.content';
 
 @Injectable()
 export class Logger {
@@ -35,7 +36,7 @@ export class Logger {
                 tag: config?.tag ?? null,
                 duration: config?.startTime ? Date.now() - config.startTime : null,
             }).catch(error => {
-                this.error(`Failed to save log in database.`, { error });
+                this.error(Content.error.failedToSaveLog(`log`), { error });
             });
         }
 
@@ -62,7 +63,7 @@ export class Logger {
                 tag: config?.tag || null,
                 duration: config?.startTime ? Date.now() - config.startTime : null,
             }).catch(error => {
-                this.error(`Failed to save warn in database.`, { error });
+                this.error(Content.error.failedToSaveLog(`warn`), { error });
             });
         }
 
@@ -98,7 +99,7 @@ export class Logger {
                 tag: config?.tag ?? null,
                 duration: config?.startTime ? Date.now() - config.startTime : null,
             }).catch(error => {
-                this.error(`Failed to save error in database.`, { error });
+                this.error(Content.error.failedToSaveLog(`error`), { error });
             });
         }
 
@@ -132,7 +133,7 @@ export class Logger {
                 tag: config?.tag ?? null,
                 duration: config?.startTime ? Date.now() - config.startTime : null,
             }).catch(error => {
-                this.error(`Failed to save debug in database.`, { error });
+                this.error(Content.error.failedToSaveLog(`debug`), { error });
             });
         }
 

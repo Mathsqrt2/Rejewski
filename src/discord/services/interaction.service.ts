@@ -34,13 +34,13 @@ export class InteractionService {
             });
 
             if (!member) {
-                this.logger.warn(`Member doesn't exist`);
+                this.logger.warn(`Member doesn't exist`, { startTime });
                 await interaction.deferUpdate();
                 return;
             }
 
             if (!member.channels.some(channel => channel.discordId === interaction.channelId)) {
-                this.logger.warn(`Action suspended. Interaction member is not channel owner.`)
+                this.logger.warn(`Action suspended. Interaction member is not channel owner.`, { startTime })
                 await interaction.deferUpdate();
                 return;
             }

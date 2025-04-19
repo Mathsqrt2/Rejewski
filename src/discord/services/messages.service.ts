@@ -88,7 +88,7 @@ export class MessagesService {
     @OnEvent(AppEvents.PrivateMessage, { async: true })
     private async handlePrivateChannelMessage(message: Message): Promise<void> {
 
-        const startTime = Date.now();
+        const startTime: number = Date.now();
         try {
 
             const channel: Channel = await this.channel.findOne({
@@ -269,14 +269,15 @@ export class MessagesService {
 
     private getSendableChannel = (textChannelId: string): SendableChannels => {
 
+        const startTime: number = Date.now();
         const channel = this.client.channels.cache.get(textChannelId);
         if (!channel) {
-            this.logger.error(Content.exceptions.notFound(`Channel`));
+            this.logger.error(Content.exceptions.notFound(`Channel`), { startTime });
             throw new NotFoundException(Content.exceptions.notFound(`Channel`));
         }
 
         if (!channel.isSendable()) {
-            this.logger.error(Content.error.notSendable());
+            this.logger.error(Content.error.notSendable(), { startTime });
             throw new NotFoundException(Content.error.notSendable());
         }
 

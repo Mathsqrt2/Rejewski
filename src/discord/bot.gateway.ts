@@ -64,6 +64,7 @@ export class BotGateway implements OnApplicationBootstrap {
     @Once(Events.ClientReady)
     public async onClientReady(): Promise<void> {
 
+        const startTime: number = Date.now();
         const descriptions = await this.description.find();
         if (descriptions) {
             this.botStatuses = descriptions.map(description => description.value);
@@ -71,7 +72,6 @@ export class BotGateway implements OnApplicationBootstrap {
 
         const initialStatus = this.botStatuses.at(0) || `✅ W czym mogę służyć?`;
 
-        const startTime = Date.now();
         this.client.user.setActivity({
             name: initialStatus,
             type: ActivityType.Custom,
@@ -80,7 +80,7 @@ export class BotGateway implements OnApplicationBootstrap {
         const cronJob = this.cron.getCronJob(`changeCurrentBotActivity`);
         if (this.botStatuses.length > 1) {
             cronJob.start();
-            this.logger.log(`Activity change cron started.`);
+            this.logger.log(`Activity change cron started.`, { startTime });
         }
 
         try {
@@ -119,7 +119,7 @@ export class BotGateway implements OnApplicationBootstrap {
     @On(Events.GuildMemberAdd)
     public async onMemberJoin(discordMember: DiscordMember): Promise<void> {
 
-        const startTime = Date.now();
+        const startTime: number = Date.now();
         const [member, isMemberNew] = await this.memberService.saveMember(discordMember.id);
         if (!member) {
             this.logger.error(`Failed to validate user.`, {
@@ -130,7 +130,7 @@ export class BotGateway implements OnApplicationBootstrap {
         }
 
         if (this.settings.app.state.mode === `DEVELOPMENT` && !this.memberService.isAccountTesting(discordMember.id)) {
-            this.logger.warn(`Real user joined to the server when bot was in development mode. Action suspended.`)
+            this.logger.warn(`Real user joined to the server when bot was in development mode. Action suspended.`, { startTime })
             return;
         }
 
@@ -197,7 +197,7 @@ export class BotGateway implements OnApplicationBootstrap {
         if (message.author.bot) {
             this.logger.warn(`Message handling canceled. Author is bot.`, {
                 tag: LogsTypes.INVALID_PAYLOAD,
-                startTime,
+                startTime
             });
             return;
         }
@@ -214,12 +214,12 @@ export class BotGateway implements OnApplicationBootstrap {
         if (this.settings.app.state.mode === `DEVELOPMENT`) {
 
             if (!this.memberService.isAccountTesting(message.author.id)) {
-                this.logger.warn(`Message was sent by real user in development mode. Action suspended.`)
+                this.logger.warn(`Message was sent by real user in development mode. Action suspended.`, { startTime })
                 return;
             }
 
             if (!this.channelsService.isChannelTesting(message.channelId)) {
-                this.logger.warn(`Message was sent on real channel in development mode. Action suspended.`)
+                this.logger.warn(`Message was sent on real channel in development mode. Action suspended.`, { startTime })
                 return;
             }
         }
@@ -271,12 +271,12 @@ export class BotGateway implements OnApplicationBootstrap {
         if (this.settings.app.state.mode === `DEVELOPMENT`) {
 
             if (!this.memberService.isAccountTesting(interaction.user.id)) {
-                this.logger.warn(`Interaction happened with real user in development mode. Action suspended.`)
+                this.logger.warn(`Interaction happened with real user in development mode. Action suspended.`, { startTime })
                 return;
             }
 
             if (!this.channelsService.isChannelTesting(interaction.channelId)) {
-                this.logger.warn(`Interaction happened on real channel in development mode. Action suspended.`)
+                this.logger.warn(`Interaction happened on real channel in development mode. Action suspended.`, { startTime })
                 return;
             }
         }

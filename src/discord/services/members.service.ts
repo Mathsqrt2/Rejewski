@@ -51,7 +51,7 @@ export class MembersService implements OnApplicationBootstrap {
     }
 
     public saveMember = async (memberDiscordId: string): Promise<[Member, boolean]> => {
-        const startTime = Date.now();
+        const startTime: number = Date.now();
         let isMemberNew: boolean = false;
 
         try {

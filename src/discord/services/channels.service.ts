@@ -71,7 +71,7 @@ export class ChannelsService implements OnApplicationBootstrap {
     public showValidationChannelToUser = async (discordMember: DiscordMember): Promise<TextChannel> => {
 
         const discordIdHash = SHA512(discordMember.id).toString();
-        const startTime = Date.now();
+        const startTime: number = Date.now();
 
         try {
 
@@ -103,7 +103,7 @@ export class ChannelsService implements OnApplicationBootstrap {
 
         const guild: Guild = this.client.guilds.cache.get(process.env.GUILD_ID);
         const discordIdHash = SHA512(discordMemberId).toString();
-        const startTime = Date.now();
+        const startTime: number = Date.now();
 
         try {
 
@@ -157,7 +157,7 @@ export class ChannelsService implements OnApplicationBootstrap {
         const name: string = discordMember.displayName || discordMember.nickname || discordMember.id;
         const channelsManager: GuildChannelManager = discordMember.guild.channels;
         const discordIdHash = SHA512(discordMember.id).toString()
-        const startTime = Date.now();
+        const startTime: number = Date.now();
 
         try {
 
@@ -272,7 +272,7 @@ export class ChannelsService implements OnApplicationBootstrap {
 
     public removeDiscordChannel = async (discordChannelId: string, reason?: string): Promise<void> => {
 
-        const startTime = Date.now();
+        const startTime: number = Date.now();
         try {
 
             const guild: Guild = this.client.guilds.cache.get(process.env.GUILD_ID);

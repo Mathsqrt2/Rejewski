@@ -53,7 +53,7 @@ export class RolesService {
 
             const guild: Guild = this.client.guilds.cache.get(process.env.GUILD_ID);
             if (!guild) {
-                this.logger.warn(Content.exceptions.notFound(`Guild`));
+                this.logger.warn(Content.exceptions.notFound(`Guild`), { startTime });
                 return;
             }
 
@@ -93,7 +93,7 @@ export class RolesService {
             return this.discordRoles;
 
         } catch (error) {
-            this.logger.error(Content.error.failedToRefreshData(`roles`));
+            this.logger.error(Content.error.failedToRefreshData(`roles`), { startTime });
         }
     }
 
@@ -110,7 +110,7 @@ export class RolesService {
         }
 
         if (!roleId) {
-            this.logger.warn(Content.warn.actionSuspended(`role`));
+            this.logger.warn(Content.warn.actionSuspended(`role`), { startTime });
             return;
         }
 
@@ -129,7 +129,7 @@ export class RolesService {
             this.logger.log(Content.log.roleHasBeenAssigned(role), { startTime });
             return true;
         } catch (error) {
-            this.logger.error(Content.error.failedToAssignRole(role), { error });
+            this.logger.error(Content.error.failedToAssignRole(role), { error, startTime });
             return false;
         }
     }
@@ -148,7 +148,7 @@ export class RolesService {
         }
 
         if (!roleId) {
-            this.logger.warn(Content.warn.actionSuspended(`role`));
+            this.logger.warn(Content.warn.actionSuspended(`role`), { startTime });
             return;
         }
 
@@ -167,7 +167,7 @@ export class RolesService {
             this.logger.log(Content.log.roleHasBeenRemoved(role), { startTime });
             return true;
         } catch (error) {
-            this.logger.error(Content.error.failedToRemoveRole(role), { error });
+            this.logger.error(Content.error.failedToRemoveRole(role), { error, startTime });
             return false;
         }
     }

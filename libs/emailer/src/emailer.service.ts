@@ -16,6 +16,7 @@ export class EmailerService {
 
     public sendVerificationEmailTo = async (email: string, code: string) => {
 
+        const startTime: number = Date.now();
         const subject: string = Content.verificationEmail.subject();
         try {
 
@@ -51,7 +52,7 @@ export class EmailerService {
             });
 
         } catch (error) {
-            this.logger.error(`Failed to send email.`, { error });
+            this.logger.error(`Failed to send email.`, { error, startTime });
         }
 
 

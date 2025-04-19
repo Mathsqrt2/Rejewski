@@ -1,3 +1,3 @@
 export type ContentStorage = { [key: string]: (p?: string) => string };
 export type NotFoundSubject = `Role` | `Guild` | `Member`;
-export type ActionSuspendedSubject = `role`
+export type ActionSuspendedSubject = `role` | `missingMembers`

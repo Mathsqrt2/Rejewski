@@ -40,7 +40,11 @@ export class Content {
         informAboutMaliciousLinks: (): string => `- wiadomość zawierała nieodpowiednie linki.\n`,
         informAboutProfanity: (): string => `- wiadomość zawierała niewłaściwe słownictwo.\n`,
         followRulesReminder: (): string => `Zachęcamy do przestrzegania regulaminu serwera.`,
-
+        youNeedToAcceptRules: (): string => `Aby odblokować zawartość serwera, musisz najpierw zaakceptować regulamin.`,
+        tooManyAttempts: (when: string): string => `Spróbowałeś podać kod zbyt wiele razy. Możesz spróbować ponownie po ${when}`,
+        codeHasBeenSentToSpecifiedEmail: (email: string) => `Właśnie wysłałem wiadomość z kodem na Twój email: "${email}", podaj mi go aby uzyskać dostęp do serwera.`,
+        codeIsStillActive: (): string => `Twój poprzedni kod jest wciąż aktualny, wysłałem go ponownie na Twojego maila. Jeżeli go nie widzisz, sprawdź w spamie.`,
+        codeAlreadyExpired: (): string => `Twój ostatni kod już wygasł, podaj ponownie maila, a wyślę Ci nowy`,
     };
 
     public static interface: ContentStorage = {
@@ -54,20 +58,27 @@ export class Content {
         failedToRemoveRole: (role: string): string => `Failed to remove user role ${role}.`,
         failedToRefreshData: (subject: string): string => `Failed to update ${subject.toLowerCase()} data.`,
         failedToUpdate: (subject: string): string => `Failed to update ${subject}.`,
+        notSendable: (): string => `Specified channel is not sendable.`,
+        emptyMessage: (type: string): string => `Message from template: "${type}" is empty.`,
+        failedToSendButton: (): string => `Failed to send rules button.`,
     }
 
     private static actionSuspendedSubject = {
-        role: `Unhandled role type.`,
+        role: ` Unhandled role type.`,
+        missingMembers: ` Private channel has no assigned members.`,
+        unpermittedUsage: ` Someone else is using client channel.`,
     }
 
     public static warn: ContentStorage = {
-        actionSuspended: (reason?: ActionSuspendedSubject): string => `Action suspended.${reason ? this.actionSuspendedSubject[reason] || `` : ``}`
+        actionSuspended: (reason?: ActionSuspendedSubject): string => `Action suspended.${reason ? this.actionSuspendedSubject[reason] || `` : ``}`,
+        messageDoesntExist: (): string => `Original message doesn't exist`,
     }
 
     public static log: ContentStorage = {
         roleHasBeenRemoved: (role: string): string => `Role ${role} has been removed.`,
         roleHasBeenAssigned: (role: string): string => `Role ${role} has been successfully assigned.`,
         dataRefreshed: (subject: string): string => `${this.uppercaseFirst(subject)} refreshed successfully.`,
+        messageSent: (): string => `Message sent successfully.`,
     }
 
     public static exceptions: ContentStorage = {

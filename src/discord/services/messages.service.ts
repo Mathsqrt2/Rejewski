@@ -23,7 +23,7 @@ import { OnEvent } from "@nestjs/event-emitter";
 import { LogsTypes, Roles } from "@libs/enums";
 import { EmailerService } from "@libs/emailer";
 import { RolesService } from "./roles.service";
-import { Injectable } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { Content } from "src/app.content";
 import { Logger } from "@libs/logger";
 import { SHA512 } from "crypto-js";
@@ -97,23 +97,23 @@ export class MessagesService {
             });
 
             if (!channel) {
-                this.logger.error(`Invalid channel.`, { startTime });
+                this.logger.error(Content.exceptions.notFound(`Channel`), { startTime });
                 return;
             }
 
             if (!channel.assignedMember) {
-                this.logger.warn(`Action suspended, private channel has no assigned members.`, { startTime });
+                this.logger.warn(Content.warn.actionSuspended(`missingMembers`), { startTime });
                 return;
             }
 
             const discordMemberIdHash = SHA512(message.author.id).toString();
             if (channel.assignedMember.discordIdHash !== discordMemberIdHash) {
-                this.logger.warn(`Action suspended. Someone else is using client channel.`, { startTime });
+                this.logger.warn(Content.warn.actionSuspended(`unpermittedUsage`), { startTime });
                 return;
             }
 
             if (!channel.assignedMember.acceptedRules) {
-                message.reply({ content: `Aby odblokować zawartość serwera, musisz najpierw zaakceptować regulamin.` });
+                message.reply({ content: Content.messages.youNeedToAcceptRules() });
                 return;
             }
 
@@ -134,7 +134,7 @@ export class MessagesService {
                 const latestAttempt = requests.at(-1);
                 const unlockTime: Date = new Date(latestAttempt.createdAt.setHours(latestAttempt.createdAt.getHours() + 1));
 
-                message.reply({ content: `Spróbowałeś podać kod zbyt wiele razy. Możesz spróbować ponownie po ${unlockTime.toLocaleString(`pl-PL`)}` });
+                message.reply({ content: Content.messages.tooManyAttempts(unlockTime.toLocaleString(`pl-PL`)) });
                 return
             }
 
@@ -142,12 +142,12 @@ export class MessagesService {
                 const isRoleAssigned = await this.rolesService.assignRoleToMember(message.author.id, Roles.VERIFIED);
                 if (isRoleAssigned) {
                     await this.channelsService.removeDiscordChannel(message.channelId);
-                    this.logger.log(`User role assigned successfully`, {
+                    this.logger.log(Content.log.roleHasBeenAssigned(Roles.VERIFIED), {
                         tag: LogsTypes.PERMISSIONS_GRANTED,
                         startTime
                     })
                 } else {
-                    this.logger.error(`Failed to assign role.`, {
+                    this.logger.error(Content.error.failedToAssignRole(Roles.VERIFIED), {
                         tag: LogsTypes.PERMISSIONS_FAIL,
                         startTime
                     });
@@ -187,7 +187,7 @@ export class MessagesService {
                 const code = await this.verification.generateCode(request, newEmail);
                 await this.emailer.sendVerificationEmailTo(messageEmail, code.value);
 
-                message.reply({ content: `Właśnie wysłałem wiadomość z kodem na Twój email: "${messageEmail}", podaj mi go aby uzyskać dostęp do serwera.` });
+                message.reply({ content: Content.messages.checkEmail(messageEmail) });
                 return;
             }
 
@@ -200,11 +200,8 @@ export class MessagesService {
                     return;
                 }
 
-
-
-                const content: string = `Twój poprzedni kod jest wciąż aktualny, wysłałem go ponownie na Twojego maila. Jeżeli go nie widzisz, sprawdź w spamie.`
-                this.emailer.sendVerificationEmailTo(content, lastRequestWithEmail.code.value);
-                message.reply(content);
+                this.emailer.sendVerificationEmailTo(Content.messages.codeIsStillActive(), lastRequestWithEmail.code.value);
+                message.reply(Content.messages.codeIsStillActive());
                 return;
 
             }
@@ -241,7 +238,7 @@ export class MessagesService {
 
             const request = member.requests.find(request => request.code?.createdAt > threeDaysAgo);
             if (!request.code) {
-                message.reply({ content: `Twój ostatni kod już wygasł, podaj ponownie maila, a wyślę Ci nowy` });
+                message.reply({ content: Content.messages.codeAlreadyExpired() });
                 return;
             }
 
@@ -274,13 +271,13 @@ export class MessagesService {
 
         const channel = this.client.channels.cache.get(textChannelId);
         if (!channel) {
-            this.logger.error(`Failed to find specified channel.`);
-            throw new Error(`Failed to find specified channel.`);
+            this.logger.error(Content.exceptions.notFound(`Channel`));
+            throw new NotFoundException(Content.exceptions.notFound(`Channel`));
         }
 
         if (!channel.isSendable()) {
-            this.logger.error(`Specified channel is not sendable.`);
-            throw new Error(`Specified channel is not sendable.`);
+            this.logger.error(Content.error.notSendable());
+            throw new NotFoundException(Content.error.notSendable());
         }
 
         return channel;
@@ -309,11 +306,11 @@ export class MessagesService {
             const message: string = this.findMessageContent(type, param || null);
 
             if (!message) {
-                throw new Error(`Message from template: "${type}" is empty.`)
+                throw new BadRequestException(Content.error.emptyMessage(type));
             }
 
             await channel.send(message);
-            this.logger.log(`Message sent successfully.`, { startTime });
+            this.logger.log(Content.log.messageSent(), { startTime });
         } catch (error) {
             this.logger.error(Content.error.failedToDisplayInviteMessage(), { error, startTime })
         }
@@ -337,7 +334,7 @@ export class MessagesService {
             })
 
         } catch (error) {
-            this.logger.error(`Failed to send rules button.`, { error, startTime });
+            this.logger.error(Content.error.failedToSendButton(), { error, startTime });
         }
 
     }
@@ -347,7 +344,7 @@ export class MessagesService {
         const startTime: number = Date.now();
         const originalMessage = await interaction.channel?.messages.fetch(interaction.message.id);
         if (!originalMessage) {
-            this.logger.warn(`Original message doesn't exist`, { startTime });
+            this.logger.warn(Content.warn.messageDoesntExist(), { startTime });
             return;
         }
 

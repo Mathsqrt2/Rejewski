@@ -14,6 +14,7 @@ import { EmailerModule } from "@libs/emailer";
 import { LoggerModule } from "@libs/logger";
 import { BotGateway } from "./bot.gateway";
 import { Module } from "@nestjs/common";
+import { DiscordController } from "./bot.controller";
 
 @Module({
     imports: [
@@ -33,6 +34,9 @@ import { Module } from "@nestjs/common";
         MembersService,
         RolesService,
         BotGateway,
+    ],
+    controllers: [
+        DiscordController,
     ],
     exports: [
         InteractionService,

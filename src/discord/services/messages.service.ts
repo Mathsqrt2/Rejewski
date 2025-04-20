@@ -97,18 +97,21 @@ export class MessagesService {
             });
 
             if (!channel) {
-                this.logger.error(Content.exceptions.notFound(`Channel`), { startTime });
+                this.logger.error(Content.exceptions.notFound(`Channel`),
+                    { startTime, tag: LogsTypes.INTERNAL_ACTION_FAIL });
                 return;
             }
 
             if (!channel.assignedMember) {
-                this.logger.warn(Content.warn.actionSuspended(`missingMembers`), { startTime });
+                this.logger.warn(Content.warn.actionSuspended(`missingMembers`),
+                    { startTime, tag: LogsTypes.INTERNAL_ACTION_FAIL });
                 return;
             }
 
             const discordMemberIdHash = SHA512(message.author.id).toString();
             if (channel.assignedMember.discordIdHash !== discordMemberIdHash) {
-                this.logger.warn(Content.warn.actionSuspended(`unpermittedUsage`), { startTime });
+                this.logger.warn(Content.warn.actionSuspended(`unpermittedUsage`),
+                    { startTime, tag: LogsTypes.PERMISSIONS_DENIED });
                 return;
             }
 
@@ -253,7 +256,8 @@ export class MessagesService {
             }
 
         } catch (error) {
-            this.logger.error(Content.error.failedToHandlePrivateMessage(), { error, startTime });
+            this.logger.error(Content.error.failedToHandlePrivateMessage(),
+                { error, startTime, tag: LogsTypes.INTERNAL_ACTION_FAIL });
         }
 
     }
@@ -263,12 +267,14 @@ export class MessagesService {
         const startTime: number = Date.now();
         const channel = this.client.channels.cache.get(textChannelId);
         if (!channel) {
-            this.logger.error(Content.exceptions.notFound(`Channel`), { startTime });
+            this.logger.error(Content.exceptions.notFound(`Channel`),
+                { startTime, tag: LogsTypes.NOT_FOUND });
             throw new NotFoundException(Content.exceptions.notFound(`Channel`));
         }
 
         if (!channel.isSendable()) {
-            this.logger.error(Content.error.notSendable(), { startTime });
+            this.logger.error(Content.error.notSendable(),
+                { startTime, tag: LogsTypes.INTERNAL_ACTION_FAIL });
             throw new NotFoundException(Content.error.notSendable());
         }
 
@@ -302,9 +308,11 @@ export class MessagesService {
             }
 
             await channel.send(message);
-            this.logger.log(Content.log.messageSent(), { startTime });
+            this.logger.log(Content.log.messageSent(),
+                { startTime, tag: LogsTypes.INTERNAL_ACTION });
         } catch (error) {
-            this.logger.error(Content.error.failedToDisplayInviteMessage(), { error, startTime })
+            this.logger.error(Content.error.failedToDisplayInviteMessage(),
+                { error, startTime, tag: LogsTypes.INTERNAL_ACTION_FAIL })
         }
     }
 
@@ -326,7 +334,8 @@ export class MessagesService {
             })
 
         } catch (error) {
-            this.logger.error(Content.error.failedToSendButton(), { error, startTime });
+            this.logger.error(Content.error.failedToSendButton(),
+                { error, startTime, tag: LogsTypes.INTERNAL_ACTION_FAIL });
         }
 
     }

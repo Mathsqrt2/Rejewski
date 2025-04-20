@@ -65,7 +65,8 @@ export class ChannelsService implements OnApplicationBootstrap {
                 discordChannel?.parentId === process.env.PRIVATE_PARENT
         })));
 
-        this.logger.log(Content.log.dataRefreshed(`Channels`), { startTime });
+        this.logger.log(Content.log.dataRefreshed(`Channels`),
+            { startTime, tag: LogsTypes.INTERNAL_ACTION });
         return true;
     }
 
@@ -90,11 +91,8 @@ export class ChannelsService implements OnApplicationBootstrap {
 
         } catch (error) {
 
-            this.logger.error(Content.error.failedToShowChannel(), {
-                tag: LogsTypes.VALIDATION_FAIL,
-                error,
-                startTime
-            });
+            this.logger.error(Content.error.failedToShowChannel(),
+                { tag: LogsTypes.VALIDATION_FAIL, error, startTime });
             return null;
 
         }
@@ -125,10 +123,9 @@ export class ChannelsService implements OnApplicationBootstrap {
             if (!discordChannel) {
                 this.channel.save({ ...channel, isDeleted: true });
                 this.channels = this.channels.filter(channel => channel.discordId !== discordChannel.id);
-                this.logger.error(Content.error.failedToDiscoverChannel(discordIdHash), {
-                    tag: LogsTypes.INTERNAL_ACTION_FAIL,
-                    startTime
-                });
+                this.logger.error(Content.error.failedToDiscoverChannel(discordIdHash),
+                    { tag: LogsTypes.INTERNAL_ACTION_FAIL, startTime }
+                );
                 return;
             }
 
@@ -143,11 +140,9 @@ export class ChannelsService implements OnApplicationBootstrap {
 
         } catch (error) {
 
-            this.logger.error(Content.error.failedToDiscoverChannel(discordIdHash), {
-                tag: LogsTypes.INTERNAL_ACTION_FAIL,
-                error,
-                startTime,
-            });
+            this.logger.error(Content.error.failedToDiscoverChannel(discordIdHash),
+                { tag: LogsTypes.INTERNAL_ACTION_FAIL, error, startTime }
+            );
             return null;
 
         }
@@ -203,20 +198,15 @@ export class ChannelsService implements OnApplicationBootstrap {
                 isTesting: member.isTester
             }));
 
-            this.logger.log(`Channel for member ${discordIdHash} created successfully.`, {
-                tag: LogsTypes.CHANNEL_CREATED,
-                startTime,
-            })
-
+            this.logger.log(`Channel for member ${discordIdHash} created successfully.`,
+                { tag: LogsTypes.CHANNEL_CREATED, startTime })
             return channel;
 
         } catch (error) {
 
-            this.logger.error(`Failed to create new channel for user ${discordIdHash}`, {
-                tag: LogsTypes.CHANNEL_CREATE_FAIL,
-                error,
-                startTime
-            });
+            this.logger.error(`Failed to create new channel for user ${discordIdHash}`,
+                { tag: LogsTypes.CHANNEL_CREATE_FAIL, error, startTime }
+            );
             return null;
 
         }
@@ -263,10 +253,9 @@ export class ChannelsService implements OnApplicationBootstrap {
             }
 
         } catch (error) {
-            this.logger.warn(`Failed to recognize channel type ${discordChannelId}, ${error?.message}.`, {
-                tag: LogsTypes.VALIDATION_FAIL,
-                startTime,
-            });
+            this.logger.warn(`Failed to recognize channel type ${discordChannelId}, ${error?.message}.`,
+                { tag: LogsTypes.VALIDATION_FAIL, startTime }
+            );
             return null;
         }
     }
@@ -284,9 +273,13 @@ export class ChannelsService implements OnApplicationBootstrap {
             await discordChannel.delete(reason || null);
             this.channel.save({ ...channel, isDeleted: true });
 
-            this.logger.log(`Channel removed successfully,`, { startTime });
+            this.logger.log(`Channel removed successfully,`,
+                { startTime, tag: LogsTypes.CHANNEL_REMOVED }
+            );
         } catch (error) {
-            this.logger.error(`Failed to remove discord channel.`, { startTime });
+            this.logger.error(`Failed to remove discord channel.`,
+                { startTime, tag: LogsTypes.CHANNEL_REMOVE_FAIL }
+            );
         }
     }
 

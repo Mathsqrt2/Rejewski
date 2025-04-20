@@ -41,7 +41,8 @@ export class RolesService {
             });
 
         } catch (error) {
-            this.logger.error(Content.error.failedToUpdate(newRole.name), { startTime });
+            this.logger.error(Content.error.failedToUpdate(newRole.name),
+                { startTime, tag: LogsTypes.INTERNAL_ACTION_FAIL });
         }
 
     }
@@ -53,7 +54,8 @@ export class RolesService {
 
             const guild: Guild = this.client.guilds.cache.get(process.env.GUILD_ID);
             if (!guild) {
-                this.logger.warn(Content.exceptions.notFound(`Guild`), { startTime });
+                this.logger.warn(Content.exceptions.notFound(`Guild`),
+                    { startTime, tag: LogsTypes.INTERNAL_ACTION_FAIL });
                 return;
             }
 
@@ -89,11 +91,13 @@ export class RolesService {
                 isDeleted: true,
             })))
 
-            this.logger.log(Content.log.dataRefreshed(`roles`), { startTime });
+            this.logger.log(Content.log.dataRefreshed(`roles`),
+                { startTime, tag: LogsTypes.INTERNAL_ACTION });
             return this.discordRoles;
 
         } catch (error) {
-            this.logger.error(Content.error.failedToRefreshData(`roles`), { startTime });
+            this.logger.error(Content.error.failedToRefreshData(`roles`),
+                { startTime, tag: LogsTypes.INTERNAL_ACTION_FAIL });
         }
     }
 
@@ -110,7 +114,8 @@ export class RolesService {
         }
 
         if (!roleId) {
-            this.logger.warn(Content.warn.actionSuspended(`role`), { startTime });
+            this.logger.warn(Content.warn.actionSuspended(`role`),
+                { startTime, tag: LogsTypes.PERMISSIONS_DENIED });
             return;
         }
 
@@ -152,7 +157,8 @@ export class RolesService {
         }
 
         if (!roleId) {
-            this.logger.warn(Content.warn.actionSuspended(`role`), { startTime });
+            this.logger.warn(Content.warn.actionSuspended(`role`),
+                { startTime, tag: LogsTypes.PERMISSIONS_DENIED });
             return;
         }
 
@@ -168,10 +174,12 @@ export class RolesService {
             }
 
             await member.roles.remove(roleId)
-            this.logger.log(Content.log.roleHasBeenRemoved(role), { startTime });
+            this.logger.log(Content.log.roleHasBeenRemoved(role),
+                { startTime, tag: LogsTypes.INTERNAL_ACTION });
             return true;
         } catch (error) {
-            this.logger.error(Content.error.failedToRemoveRole(role), { error, startTime });
+            this.logger.error(Content.error.failedToRemoveRole(role),
+                { error, startTime, tag: LogsTypes.INTERNAL_ACTION_FAIL });
             return false;
         }
     }

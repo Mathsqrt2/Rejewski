@@ -1,12 +1,12 @@
 import { MessagesService } from "src/discord/services/messages.service";
 import { RolesService } from "src/discord/services/roles.service";
 import {
-    BadRequestException, Controller, Get, HttpCode,
+    Controller, Get, HttpCode,
     HttpStatus, NotFoundException, Param
 } from "@nestjs/common";
 import { InjectDiscordClient } from "@discord-nestjs/core";
 import { SendMessageDto } from "./dtos/sendMessage.Dto";
-import { BotResponse, Roles } from "@libs/enums";
+import { BotResponse, LogsTypes, Roles } from "@libs/enums";
 import { ChannelDto } from "./dtos/ChannelDto";
 import { EmailerService } from "@libs/emailer";
 import { Content } from "src/app.content";
@@ -37,10 +37,12 @@ export class TestController {
             try {
                 await this.messagesService.sendMessage(channelId, response as BotResponse);
             } catch (error) {
-                this.logger.error(`Failed to send ${response}.`, { error, startTime });
+                this.logger.error(`Failed to send ${response}.`,
+                    { error, startTime, tag: LogsTypes.RESPONSE_FAIL });
             }
         }
-        this.logger.log(Content.log.messageSent(), { startTime });
+        this.logger.log(Content.log.messageSent(),
+            { startTime, tag: LogsTypes.RESPONSE_SUCCESS });
     }
 
     @Get(`:channelId/button`)
@@ -55,10 +57,12 @@ export class TestController {
         try {
 
             await this.messagesService.sendRulesButton(channelId);
-            this.logger.log(Content.log.messageSent(), { startTime });
+            this.logger.log(Content.log.messageSent(),
+                { startTime, tag: LogsTypes.RESPONSE_SUCCESS });
 
         } catch (error) {
-            this.logger.error(`Failed to force sending message with ${params}`, { error, startTime })
+            this.logger.error(`Failed to force sending message with ${params}`,
+                { error, startTime, tag: LogsTypes.RESPONSE_FAIL })
         }
 
     }
@@ -75,10 +79,12 @@ export class TestController {
         try {
 
             await this.messagesService.sendMessage(channelId, messageType);
-            this.logger.log(Content.log.messageSent(), { startTime });
+            this.logger.log(Content.log.messageSent(),
+                { startTime, tag: LogsTypes.RESPONSE_SUCCESS });
 
         } catch (error) {
-            this.logger.error(`Failed to force sending message with ${params}`, { error, startTime })
+            this.logger.error(`Failed to force sending message with ${params}`,
+                { error, startTime, tag: LogsTypes.RESPONSE_FAIL })
         }
 
     }
@@ -91,9 +97,12 @@ export class TestController {
         try {
 
             await this.emailer.sendVerificationEmailTo(process.env.TEST_EMAIL, process.env.TEST_CODE);
+            this.logger.log(Content.log.messageSent(),
+                { startTime, tag: LogsTypes.RESPONSE_SUCCESS });
 
         } catch (error) {
-            this.logger.error(`Failed to send forced verification email.`, { error, startTime });
+            this.logger.error(`Failed to send forced verification email.`,
+                { error, startTime, tag: LogsTypes.RESPONSE_FAIL });
         }
     }
 
@@ -104,12 +113,15 @@ export class TestController {
         @Param(`role`) role: string,
     ): Promise<void> {
 
+        const startTime: number = Date.now();
         const roleKey = Object.keys(Roles).find(key => key === role.toUpperCase());
         if (!roleKey) {
             throw new NotFoundException(Content.exceptions.notFound(`Role`));
         }
 
         await this.rolesService.assignRoleToMember(memberId, Roles[roleKey]);
+        this.logger.log(Content.log.messageSent(),
+            { startTime, tag: LogsTypes.RESPONSE_SUCCESS });
     }
 
     @Get(`remove/:memberId/:role`)
@@ -119,11 +131,14 @@ export class TestController {
         @Param(`role`) role: string,
     ): Promise<void> {
 
+        const startTime: number = Date.now();
         const roleKey = Object.keys(Roles).find(key => key === role.toUpperCase());
         if (!roleKey) {
-            throw new BadRequestException(Content.exceptions.notFound(`Role`));
+            throw new NotFoundException(Content.exceptions.notFound(`Role`));
         }
 
         await this.rolesService.removeMemberRole(memberId, Roles[roleKey])
+        this.logger.log(Content.log.messageSent(),
+            { startTime, tag: LogsTypes.RESPONSE_SUCCESS });
     }
 }

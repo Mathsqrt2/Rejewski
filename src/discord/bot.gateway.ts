@@ -82,7 +82,9 @@ export class BotGateway implements OnApplicationBootstrap {
         const cronJob = this.cron.getCronJob(CronJobs.CHANGE_CURRENT_BOT_ACTIVITY);
         if (this.botStatuses.length > 1) {
             cronJob.start();
-            this.logger.log(Content.log.cronStarted(`Activity change`), { startTime });
+            this.logger.log(Content.log.cronStarted(`Activity change`),
+                { startTime, tag: LogsTypes.INTERNAL_ACTION }
+            );
         }
 
         try {
@@ -132,7 +134,8 @@ export class BotGateway implements OnApplicationBootstrap {
         }
 
         if (this.settings.app.state.mode === `DEVELOPMENT` && !this.memberService.isAccountTesting(discordMember.id)) {
-            this.logger.warn(Content.warn.actionSuspended(`realUserMessageInDevMode`), { startTime })
+            this.logger.warn(Content.warn.actionSuspended(`realUserMessageInDevMode`),
+                { startTime, tag: LogsTypes.PERMISSIONS_DENIED })
             return;
         }
 
@@ -145,7 +148,7 @@ export class BotGateway implements OnApplicationBootstrap {
         const channel = await this.channelsService.showValidationChannelToUser(discordMember);
         if (!channel) {
             this.logger.error(Content.error.failedToFindChannel(`validation`), {
-                tag: LogsTypes.INTERNAL_ACTION_FAIL,
+                tag: LogsTypes.UNKNOWN_CHANNEL,
                 startTime
             }
             );
@@ -198,7 +201,7 @@ export class BotGateway implements OnApplicationBootstrap {
         const discordIdHash = SHA512(message.author.id).toString();
         if (!message?.channel) {
             this.logger.error(Content.error.invalidMetadata(discordIdHash), {
-                tag: LogsTypes.INVALID_PAYLOAD,
+                tag: LogsTypes.UNKNOWN_MEMBER,
                 startTime
             });
             return;
@@ -207,12 +210,14 @@ export class BotGateway implements OnApplicationBootstrap {
         if (this.settings.app.state.mode === `DEVELOPMENT`) {
 
             if (!this.memberService.isAccountTesting(message.author.id)) {
-                this.logger.warn(Content.warn.actionSuspended(`realUserMessageInDevMode`), { startTime })
+                this.logger.warn(Content.warn.actionSuspended(`realUserMessageInDevMode`),
+                    { startTime, tag: LogsTypes.PERMISSIONS_DENIED })
                 return;
             }
 
             if (!this.channelsService.isChannelTesting(message.channelId)) {
-                this.logger.warn(Content.warn.actionSuspended(`messageOnRealChannelInDevMode`), { startTime })
+                this.logger.warn(Content.warn.actionSuspended(`messageOnRealChannelInDevMode`),
+                    { startTime, tag: LogsTypes.PERMISSIONS_DENIED })
                 return;
             }
         }
@@ -264,12 +269,14 @@ export class BotGateway implements OnApplicationBootstrap {
         if (this.settings.app.state.mode === `DEVELOPMENT`) {
 
             if (!this.memberService.isAccountTesting(interaction.user.id)) {
-                this.logger.warn(Content.warn.actionSuspended(`realUserInteractionInDevMode`), { startTime })
+                this.logger.warn(Content.warn.actionSuspended(`realUserInteractionInDevMode`),
+                    { startTime, tag: LogsTypes.PERMISSIONS_DENIED })
                 return;
             }
 
             if (!this.channelsService.isChannelTesting(interaction.channelId)) {
-                this.logger.warn(Content.warn.actionSuspended(`realChannelInteractionInDevMode`), { startTime })
+                this.logger.warn(Content.warn.actionSuspended(`realChannelInteractionInDevMode`),
+                    { startTime, tag: LogsTypes.PERMISSIONS_DENIED })
                 return;
             }
         }
@@ -278,13 +285,14 @@ export class BotGateway implements OnApplicationBootstrap {
             try {
                 await this.eventEmitter.emitAsync(AppEvents.RulesAccept, interaction);
             } catch (error) {
-                this.logger.error(Content.error.failedToEmitEvent(), { error, startTime });
+                this.logger.error(Content.error.failedToEmitEvent(),
+                    { error, startTime, tag: LogsTypes.INTERNAL_ACTION_FAIL });
             }
             return;
         }
     }
 
-    public async onApplicationBootstrap() {
+    public onApplicationBootstrap() {
         this.channelsService.updateChannelsInfo();
         this.rolesService.updateRolesInfo();
         this.memberService.updateMembersInfo();

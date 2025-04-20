@@ -16,6 +16,7 @@ import { Repository } from "typeorm";
 import { Content } from "src/app.content";
 import { AppServiceDto } from "./dtos/app-service.dto";
 import { CronNameDto } from "./dtos/cron-name.dto";
+import { RolesService } from "./services/roles.service";
 
 @Controller(`api`)
 export class DiscordController {
@@ -25,6 +26,7 @@ export class DiscordController {
         private readonly settings: SettingsService,
         private readonly messages: MessagesService,
         private readonly channels: ChannelsService,
+        private readonly roles: RolesService,
         private readonly content: ContentService,
     ) { }
 
@@ -130,6 +132,7 @@ export class DiscordController {
 
         await this.dictionary.delete({ whiteList: true });
         this.content.updateData();
+
     }
 
     @Get(`update/:service`)
@@ -137,6 +140,7 @@ export class DiscordController {
     public async forceUpdateServiceData(
         @Param() params: AppServiceDto
     ): Promise<void> {
+
 
         let appService: string;
 

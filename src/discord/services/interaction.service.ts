@@ -34,13 +34,17 @@ export class InteractionService {
             });
 
             if (!member) {
-                this.logger.warn(Content.exceptions.notFound(`Member`), { startTime });
+                this.logger.warn(Content.exceptions.notFound(`Member`),
+                    { startTime, tag: LogsTypes.INTERNAL_ACTION_FAIL }
+                );
                 await interaction.deferUpdate();
                 return;
             }
 
             if (!member.channels.some(channel => channel.discordId === interaction.channelId)) {
-                this.logger.warn(Content.warn.actionSuspended(`unpermittedInteraction`), { startTime })
+                this.logger.warn(Content.warn.actionSuspended(`unpermittedInteraction`),
+                    { startTime, tag: LogsTypes.PERMISSIONS_DENIED }
+                )
                 await interaction.deferUpdate();
                 return;
             }
@@ -66,7 +70,9 @@ export class InteractionService {
 
         } catch (error) {
 
-            this.logger.error(Content.error.failedToHandleInteraction(), { startTime, error });
+            this.logger.error(Content.error.failedToHandleInteraction(),
+                { startTime, error, tag: LogsTypes.INTERNAL_ACTION_FAIL }
+            );
             await interaction.deferUpdate();
 
         }

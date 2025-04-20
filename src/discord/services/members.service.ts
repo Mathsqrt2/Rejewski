@@ -47,7 +47,9 @@ export class MembersService implements OnApplicationBootstrap {
             return this.member.save({ discordIdHash, isAdmin, isConfirmed });
         }));
 
-        this.logger.log(Content.log.dataRefreshed(`Members`), { startTime });
+        this.logger.log(Content.log.dataRefreshed(`Members`),
+            { startTime, tag: LogsTypes.INTERNAL_ACTION }
+        );
         return true;
     }
 
@@ -67,18 +69,14 @@ export class MembersService implements OnApplicationBootstrap {
                 member = await this.member.save({ discordIdHash });
                 isMemberNew = true;
                 this.members.push(member);
-                this.logger.log(Content.log.memberJoined(discordIdHash), {
-                    tag: LogsTypes.USER_JOINED,
-                    startTime
-                }
+                this.logger.log(Content.log.memberJoined(discordIdHash),
+                    { tag: LogsTypes.USER_JOINED, startTime }
                 );
 
             } else {
 
-                this.logger.log(Content.log.memberFound(discordIdHash), {
-                    tag: LogsTypes.DATABASE_READ,
-                    startTime
-                }
+                this.logger.log(Content.log.memberFound(discordIdHash),
+                    { tag: LogsTypes.DATABASE_READ, startTime }
                 );
 
             }
@@ -87,11 +85,9 @@ export class MembersService implements OnApplicationBootstrap {
 
         } catch (error) {
 
-            this.logger.error(Content.error.failedToValidatePresence(), {
-                tag: LogsTypes.DATABASE_FAIL,
-                error,
-                startTime
-            });
+            this.logger.error(Content.error.failedToValidatePresence(),
+                { tag: LogsTypes.DATABASE_FAIL, error, startTime }
+            );
 
             return null;
         }

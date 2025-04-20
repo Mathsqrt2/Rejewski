@@ -4,6 +4,7 @@ import { render } from '@react-email/components';
 import { Injectable } from '@nestjs/common';
 import { Content } from 'src/app.content';
 import { Logger } from '@libs/logger';
+import { LogsTypes } from '@libs/enums';
 
 @Injectable()
 export class EmailerService {
@@ -51,7 +52,9 @@ export class EmailerService {
             });
 
         } catch (error) {
-            this.logger.error(Content.error.failedToSendEmail(), { error, startTime });
+            this.logger.error(Content.error.failedToSendEmail(),
+                { error, startTime, tag: LogsTypes.INTERNAL_ACTION_FAIL }
+            );
         }
 
     }

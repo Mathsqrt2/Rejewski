@@ -4,20 +4,17 @@ import {
     Controller, Get, HttpCode,
     HttpStatus, NotFoundException, Param
 } from "@nestjs/common";
-import { InjectDiscordClient } from "@discord-nestjs/core";
 import { SendMessageDto } from "./dtos/sendMessage.Dto";
 import { BotResponse, LogsTypes, Roles } from "@libs/enums";
 import { ChannelDto } from "./dtos/ChannelDto";
 import { EmailerService } from "@libs/emailer";
 import { Content } from "src/app.content";
 import { Logger } from "@libs/logger";
-import { Client } from "discord.js";
 
 @Controller(`api/test`)
 export class TestController {
 
     constructor(
-        @InjectDiscordClient() private readonly client: Client,
         private readonly messagesService: MessagesService,
         private readonly rolesService: RolesService,
         private readonly emailer: EmailerService,

@@ -1,13 +1,15 @@
-import { Injectable, Logger as NestLogger } from '@nestjs/common';
+import { HttpStatus, Injectable, Logger as NestLogger, NestMiddleware } from '@nestjs/common';
 import { ErrorConfig, LoggerConfig } from '@libs/types/logs';
 import { Log } from '@libs/database/entities/log.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { SettingsService } from '@libs/settings';
 import { Repository } from 'typeorm';
 import { Content } from 'src/app.content';
+import { LogsTypes } from '@libs/enums';
+import { NextFunction, Request, Response } from 'express';
 
 @Injectable()
-export class Logger {
+export class Logger implements NestMiddleware {
 
     private logger: NestLogger;
     private textFieldMaxLength = 65534;
@@ -17,6 +19,25 @@ export class Logger {
         private readonly settings: SettingsService,
     ) {
         this.logger = new NestLogger(this.settings.app.name);
+    }
+
+    use = (req: Request, res: Response, next: NextFunction) => {
+
+        const startTime = Date.now();
+        const code = res.statusCode;
+
+        res.on('finish', () => {
+
+            const message = `method: "${req.method}", origin: "${req.originalUrl}", code: "${code}"`;
+            if (code === HttpStatus.ACCEPTED || code === HttpStatus.OK || code === HttpStatus.FOUND) {
+                this.log(message, { startTime, tag: LogsTypes.RESPONSE_SUCCESS });
+            } else {
+                this.warn(message, { startTime, tag: LogsTypes.RESPONSE_FAIL });
+            }
+
+        });
+
+        next();
     }
 
     private shouldLog = (): boolean => this.settings.app.state.shouldLog;

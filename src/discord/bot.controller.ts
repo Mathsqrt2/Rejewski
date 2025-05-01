@@ -1,22 +1,26 @@
 import { Dictionary } from "@libs/database/entities/dictionary.entity";
 import { SettingsService } from "@libs/settings";
 import {
+    BadRequestException,
     Body, Controller, Delete, Get, HttpCode,
-    HttpStatus, NotFoundException, Param, Post
+    HttpStatus, InternalServerErrorException, NotFoundException, Param, Post
 } from "@nestjs/common";
 import { ChannelsService } from "./services/channels.service";
 import { MessagesService } from "./services/messages.service";
 import { ContentService } from "./services/content.service";
 import { AppSettingsDto } from "./dtos/app-settings.dto";
+import { RolesService } from "./services/roles.service";
+import { AppServiceDto } from "./dtos/app-service.dto";
 import { DictionaryDto } from "./dtos/dictionary.dto";
 import { InjectRepository } from "@nestjs/typeorm";
+import { CronNameDto } from "./dtos/cron-name.dto";
 import { AppConfig } from "@libs/types/settings";
 import { PhraseDto } from "./dtos/phrase.dto";
-import { Repository } from "typeorm";
 import { Content } from "src/app.content";
-import { AppServiceDto } from "./dtos/app-service.dto";
-import { CronNameDto } from "./dtos/cron-name.dto";
-import { RolesService } from "./services/roles.service";
+import { Repository } from "typeorm";
+import { AppServices } from "@libs/enums/services.enum";
+import { MembersService } from "./services/members.service";
+import { CronJobs } from "@libs/enums/cron.enum";
 
 @Controller(`api`)
 export class DiscordController {
@@ -26,8 +30,9 @@ export class DiscordController {
         private readonly settings: SettingsService,
         private readonly messages: MessagesService,
         private readonly channels: ChannelsService,
-        private readonly roles: RolesService,
+        private readonly members: MembersService,
         private readonly content: ContentService,
+        private readonly roles: RolesService,
     ) { }
 
     @Get(`config`)
@@ -47,6 +52,7 @@ export class DiscordController {
     @Get(`blacklist`)
     @HttpCode(HttpStatus.FOUND)
     public async getBlacklistedPhrases(): Promise<Dictionary[]> {
+
         const phrases = await this.dictionary.find({ where: { blackList: true } });
         if (!phrases) {
             throw new NotFoundException(Content.exceptions.notFound(`Phrases`));
@@ -60,11 +66,12 @@ export class DiscordController {
     public async addPhraseToBlacklist(
         @Body() body: DictionaryDto
     ): Promise<Dictionary[]> {
-        const phrases = Promise.all(body.phrases.map((phrase: PhraseDto) => (
+
+        const phrases = await Promise.all(body?.phrases.map((phrase: PhraseDto) => (
             this.dictionary.save({ ...phrase, blackList: true })
         )));
+        await this.content.updateData();
 
-        this.content.updateData();
         return phrases;
     }
 
@@ -74,24 +81,23 @@ export class DiscordController {
         @Body() body: DictionaryDto
     ): Promise<void> {
 
-        Promise.all(body.phrases.map((element: PhraseDto) => (
+        await Promise.all(body.phrases.map((element: PhraseDto) => (
             this.dictionary.delete({ phrase: element.phrase, blackList: true })
         )));
-        this.content.updateData();
+        await this.content.updateData();
     }
 
     @Delete(`blacklist/clear`)
     @HttpCode(HttpStatus.ACCEPTED)
     public async clearBlacklist(): Promise<void> {
-
+        await this.content.updateData();
         await this.dictionary.delete({ blackList: true });
-        this.content.updateData();
-
     }
 
     @Get(`whitelist`)
     @HttpCode(HttpStatus.FOUND)
     public async getWhitelistedPhrases(): Promise<Dictionary[]> {
+
         const phrases = await this.dictionary.find({ where: { whiteList: true } });
         if (!phrases) {
             throw new NotFoundException(Content.exceptions.notFound(`Phrases`));
@@ -106,11 +112,12 @@ export class DiscordController {
     public async addPhraseToWhitelist(
         @Body() body: DictionaryDto
     ): Promise<Dictionary[]> {
-        const phrases = Promise.all(body.phrases.map((phrase: PhraseDto) => (
+
+        const phrases = await Promise.all(body.phrases.map((phrase: PhraseDto) => (
             this.dictionary.save({ ...phrase, blackList: true })
         )));
 
-        this.content.updateData();
+        await this.content.updateData();
         return phrases;
     }
 
@@ -120,10 +127,11 @@ export class DiscordController {
         @Body() body: DictionaryDto
     ): Promise<void> {
 
-        Promise.all(body.phrases.map((element: PhraseDto) => (
+        await Promise.all(body.phrases.map((element: PhraseDto) => (
             this.dictionary.delete({ phrase: element.phrase, whiteList: true })
         )));
-        this.content.updateData();
+        await this.content.updateData();
+
     }
 
     @Delete(`whitelist/clear`)
@@ -131,26 +139,38 @@ export class DiscordController {
     public async clearWhitelist(): Promise<void> {
 
         await this.dictionary.delete({ whiteList: true });
-        this.content.updateData();
+        await this.content.updateData();
 
     }
 
     @Get(`update/:service`)
     @HttpCode(HttpStatus.ACCEPTED)
     public async forceUpdateServiceData(
-        @Param() params: AppServiceDto
+        @Param() { service }: AppServiceDto
     ): Promise<void> {
 
-
-        let appService: string;
+        switch (service) {
+            case AppServices.MEMBERS_SERVICE: await this.members.updateMembersInfo();
+                break;
+            case AppServices.CHANNELS_SERVICE: await this.channels.updateChannelsInfo();
+                break;
+            case AppServices.ROLES_SERVICE: await this.roles.updateRolesInfo();
+                break;
+            case AppServices.ALL:
+            default:
+                throw new BadRequestException(`Specified service not found.`);
+        }
 
     }
 
     @Post(`cron/update/:cronName`)
     @HttpCode(HttpStatus.ACCEPTED)
     public async updateCron(
-        @Param() params: CronNameDto
+        @Param() { cronName }: CronNameDto,
+        @Body() body: {}
     ) {
+
+
 
     }
 

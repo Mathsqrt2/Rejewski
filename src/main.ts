@@ -9,7 +9,7 @@ async function bootstrap() {
       prefix: `Rejewski`,
       timestamp: true,
       colors: true,
-    })
+    }),
   });
 
   app.useGlobalPipes(new ValidationPipe({
